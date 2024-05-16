@@ -1,0 +1,69 @@
+#employee-card{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#employee-card .panel-card{
+    padding: 30px 10px 10px;
+}
+
+#employee-card .emp-profile-img img{
+    width: 100%;
+    height: auto;
+    transform: translate(-50%,-50%);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+}
+
+#employee-card h4.card-title a{
+    color: #444;
+    font-weight: 500 !important;
+}
+
+#employee-card h4.card-title a:hover{
+    color: #30A5FF;
+    text-decoration: none;
+}
+
+#employee-card h5, #employee-card .employee-email{
+    font-size: 12px !important;
+}
+
+#employee-card h5 span{
+    display: block;
+}
+
+#employee-card h5 .employee-email, .employee-email-description{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#employee-card .name-format{
+    display: block;
+    color: #808080;
+}
+
+#employee-card .text-align-center{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#employee-card .fa-eye, #employee-card .fa-pencil{
+    color: #3A75FB;
+}
+
+#employee-card .fa-user-times{
+    color: #ff0000;
+}
+
+#employee-card .fa-user-plus{
+    color: #008000;
+}
+
+#employee-card a:hover .fa{
+    opacity: .6;
+}

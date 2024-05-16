@@ -1,0 +1,10 @@
+@auth
+    @if(Auth::user()->isAdmin())
+        @include('layout.menu.admin')
+    @else
+        @include('layout.menu.normal')
+    @endif 
+@endauth
+@guest
+    @include('layout.menu.normal')
+@endguest
