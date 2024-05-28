@@ -402,8 +402,8 @@ function loadEmployee(img, position, department, fullname)
   
    $('.img-upload').click(function (e) {
      e.preventDefault();
-     $('#modal-upload-photo').modal('show');
-   });
+     $('#modal-upload-photo').modal('show'); 
+   }); 
 
   });
   $('.select-title').change(function(e) {
