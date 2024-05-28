@@ -410,7 +410,7 @@ function loadEmployee(img, position, department, fullname)
       e.preventDefault();
   
       var value = $(this).val(),
-          title = $('input[name="title"]');
+          title = $('input[name="title"]'); 
           br = $('#br');
   
       title.addClass('d-none');
