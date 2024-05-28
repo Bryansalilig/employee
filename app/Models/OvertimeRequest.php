@@ -26,7 +26,7 @@ class OvertimeRequest extends Model
             $query = " AND `overtime_request`.`slug`='{$in_id}'";
                 break;
             case 'team':
-            $query = " AND (`employee_info`.`supervisor_id`={$in_id} OR `employee_info`.`manager_id`={$in_id})";
+            $query = " AND (`employee_info`.`supervisor_id`={$in_id} OR `employee_info`.`manager_id`={$in_id} OR `employee_info`.`approver_id`={$in_id})";
             $query .= " AND `overtime_request`.`status` = '{$in_type}'";
                 break;
             default:
@@ -41,6 +41,7 @@ class OvertimeRequest extends Model
                 `employee_info`.`first_name`,
                 `employee_info`.`supervisor_id`,
                 `employee_info`.`manager_id`,
+                `employee_info`.`approver_id`,
                 `employee_info`.`contact_number`,
                 `employee_info`.`position_name`,
                 `employee_info`.`team_name`

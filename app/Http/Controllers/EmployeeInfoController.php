@@ -182,6 +182,7 @@ class EmployeeInfoController extends Controller
     $details->rehirable = $request->rehirable; // 0 - No, 1 - Yes
     $details->rehire_reason = $request->rehire_reason;
     $employee->notes = $request->notes;
+    $employee->approver_id = $request->approver_id;
     /* End Job Information */
 
     /* Government Numbers Tab */

@@ -60,17 +60,20 @@
           {{ csrf_field() }}
             <ul class="nav nav-tabs tabs-line">
               <li class="nav-item">
-                <a class="nav-link active" href="#tab-appraisee" data-toggle="tab"><i class="fa fa-clock-o fa-1x"></i> Request</a>
+                <a class="nav-link" href="#tab-appraisee" data-toggle="tab"><i class="fa fa-clock-o fa-1x"></i> Request</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#tab-reviewed" data-toggle="tab"><i class="fa fa-thumbs-o-up fa-1x" aria-hidden="true"></i> Reviewed by</a>
+                <a class="nav-link active" href="#tab-reviewed" data-toggle="tab"><i class="fa fa-thumbs-o-up fa-1x" aria-hidden="true"></i> Reviewed by</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#tab-timekeeping" data-toggle="tab"><i class="fa fa-calendar-o fa-1x" aria-hidden="true"></i> Timekeeping</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="#tab-log" data-toggle="tab"><i class="ti-notepad"></i> Log</a>
               </li>
             </ul>
             <div class="tab-content">
-              <div class="tab-pane fade show active" id="tab-appraisee">
+              <div class="tab-pane fade" id="tab-appraisee">
                 <div class="row">
                   <div class="col-md-12" style="border-right: 1px solid #eee;">
                     <?php 
@@ -148,6 +151,7 @@
                   ?>
                 </div>
               </div>
+
               <div class="tab-pane fade" id="tab-reviewed">
                 <div class="row">
                   <div class="col-md-12" style="border-right: 1px solid #eee;">
@@ -177,7 +181,22 @@
                         </div>
                         </div>
                       </li>
-                      <li class="media col-6 px-2 flex-wrap" data-emp-id="3828"><h6 class="text-info m-b-10 w-100"><i class="fa fa-thumbs-up" aria-hidden="true"></i> <?= ($overtime->status == 'COMPLETED') ? 'Completed' : 'Approved' ?> by:</h6>
+                      <li class="media col-6 px-2 flex-wrap"><h6 class="text-info m-b-10 w-100"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Completed by:</h6>
+                        <div class="media-img">
+                          <div class="img-circle" style="background-image: url('{{ $completer->profile_img }}');"></div>
+                          </div>
+                        <div class="media-body">
+                        <div class="media-heading">
+                        <?= (empty($completer) ? 'HR DEPARTMENT' : $completer->first_name.' '.$completer->last_name.(($completer->id == Auth::user()->id) ? ' (You)' : '')) ?>
+                        </div>
+                        <div class="font-13">
+                        <a href="mailto::{{ $completer->email }}">{{ $completer->email }}</a>  
+                        <br>
+                        <small <?= (empty($overtime->completed_date) ? '' : ' class="text-success"') ?>><?= (empty($overtime->completed_date) ? 'Not yet approved' : 'Approved last ' .  prettyDate($overtime->completed_date)) ?></small>
+                      </div>
+                        </div>
+                      </li>
+                      <li class="media col-6 px-2 flex-wrap"><h6 class="text-info m-b-10 w-100 m-t-20"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Approved by:</h6>
                         <div class="media-img">
                           <div class="img-circle" style="background-image: url('{{ $manager->profile_img }}');"></div>
                           </div>
@@ -193,6 +212,96 @@
                         </div>
                       </li>
                     </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-pane fade show active" id="tab-timekeeping">
+                <div class="row">
+                  <div class="col-md-12" style="border-right: 1px solid #eee;">
+                    <?php 
+                      $i = 0;
+                      $position = '';
+                      $department = '';
+                      $profile_img = '';
+                      $fullname = '';
+                      if($i == 0) {
+                        $position = $overtime->position_name;
+                        $department = $overtime->team_name;
+                        $profile_img = $employee->profile_img;
+                        $fullname = $overtime->last_name . ', ' . $overtime->first_name;
+                        }
+                         
+                      $i++;
+                    ?>
+                      <table class="table table-striped table-hover">
+                        <thead>
+                          <tr>
+                            <th>Overtime Date</th>
+                            <th class="text-center">No. of Hours (Estimated)</th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th>No. of Hours(Actual)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                        <?php
+		                    foreach($overtime->dates as $key=>$date){
+		                    ?>
+                          <tr>
+                            <td><?= date('F d, Y',strtotime($date)) ?></td>
+                            <td class="text-center"><?= $overtime->no_of_hours[$key]?><?= ($overtime->no_of_hours[$key] > 1) ? " hrs" : " hr"?></td>
+                            <td><?= empty($overtime->time_in[$key]) ? '' : date('m/d/Y H:i A', strtotime($overtime->time_in[$key])) ?></td>
+                            <td><?= empty($overtime->time_out[$key]) ? '' : date('m/d/Y H:i A', strtotime($overtime->time_out[$key])) ?></td>
+                            <td><?= numberOfHours($overtime->time_in[$key], $overtime->time_out[$key], false, true) ?></td>
+                          </tr>
+		                    <?php
+		                    }
+		                    ?>
+                        </tbody>
+                      </table>
+                  </div>
+                  <div class="col-md-4 form-group info">
+                  <br>
+                    <label>Date filed:</label>
+                    <p class="text-display"><?= slashedDate($overtime->created_at) ?></p> 
+                  </div>
+                  <div class="col-md-4 form-group info">
+                  <br>
+                    <label>Contact Number:</label>
+                    <p class="text-display"><?= $overtime->contact_number ?></p> 
+                  </div>
+                  <div class="col-md-4 form-group info">
+                  <br>
+                    <label>Total No. of Hours:</label>
+                    <p class="text-display"><?= array_sum($overtime->no_of_hours) ?></p>
+                  </div>
+                  <div class="col-md-12 form-group info">
+                  <br>
+                    <label>Reason:</label>
+                    <p class="text-display"><?= htmlentities($overtime->reason) ?></p> 
+                  </div>
+                  <?php
+                    if(!empty($overtime->reverted_reason)) {
+                  ?>
+                  <div class="col-md-12 form-group info">
+                  <br>
+                    <label>Revert Reason:</label>
+                    <p class="text-display"><?= htmlentities($overtime->reverted_reason) ?></p> 
+                  </div>
+                  <?php
+                    }
+                  ?>
+                  <div class="col-md-12 m-t-20">
+                  <h6 class="text-info m-b-10 w-100"><i class="fa fa-calendar-o" aria-hidden="true"></i> Timekeeping Log:</h6>
+                  </div>
+                  <div class="col-md-6 m-t-10">
+                  <label for="time-in">Time In <span class="text-danger">*</span></label>
+                    <input type="text" name="date[]" class="form-control mdatetime input_none" placeholder="MM/DD/YYYY" autocomplete="off" required />
+                  </div>
+                  <div class="col-md-6 m-t-10">
+                  <label for="time-out">Time Out <span class="text-danger">*</span></label>
+                    <input type="text" name="date[]" class="form-control mdatetime input_none" placeholder="MM/DD/YYYY" autocomplete="off" required />
                   </div>
                 </div>
               </div>
@@ -287,6 +396,8 @@ function loadEmployee(img, position, department, fullname)
    $('#fullname').text(fullname);
   }
   $(function () {
+  $('.mdatetime').bootstrapMaterialDatePicker({ format: 'YYYY-MM-DD HH:mm', time: true, clearButton: true });
+
    loadEmployee('{{ $profile_img }}', '{{ $position }}', '{{ $department }}', '{{ $fullname }}');
   
    $('.img-upload').click(function (e) {
@@ -326,7 +437,7 @@ function loadEmployee(img, position, department, fullname)
             new_entry.find('.btn-add').html('<span class="fa fa-minus"></span>');
             new_entry.find('.btn-add').removeClass('btn-primary').addClass('btn-danger');
             new_entry.find('.btn-add').removeClass('btn-add').addClass('btn-remove')
-            new_entry.find('.mdate2').bootstrapMaterialDatePicker({ format: 'YYYY-MM-DD', time: false, clearButton: true });
+            new_entry.find('.mdate2').bootstrapMaterialDatePicker({ format: 'YYYY-MM-DD HH:mm', time: true, clearButton: true });
             new_entry.find('.mdate2').val('');
             new_entry.find('.input_none').keydown(function(e) {
                 e.preventDefault();

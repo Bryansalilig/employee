@@ -343,7 +343,6 @@ setInterval(updateTime, 60000); // 60000 milliseconds = 1 minute
                                         <span class="badge badge-warning badge-big">
                                           <i class="fa fa-clock-o" aria-hidden="true"></i></span>
                                     </div>
-                                    <h1>This is a test for git</h1>
                                     <div class="media-body">
                                         <div class="font-13">
                                             <span class="noti">

@@ -216,12 +216,22 @@ class OvertimeController extends Controller
     public function show($slug)
     {
         $item = OvertimeRequest::getOvertime('', 'show', $slug);
-
         if(count($item) <= 0) {
             return redirect('/404');
             exit;
         }
+        // echo "<pre>";
+        // print_r($item[0]);
+        // return;
+        $completer = User::withTrashed()->find($item[0]->completed_id);
+       
+        if (empty($completer)){
+            $completer = User::withTrashed()->find($item[0]->approver_id);
 
+            if (empty($completer)) {
+                $completer = ($item[0]->approved_id) ? User::withTrashed()->find($item[0]->approved_id) : User::withTrashed()->find($item[0]->manager_id);
+            }
+        }
         $overtime = OvertimeRequest::withTrashed()->where('slug', $slug)->first();
         
         $employee = User::withTrashed()->where('id', $overtime->employee_id)->first();
@@ -231,7 +241,7 @@ class OvertimeController extends Controller
                 if(Auth::user()->usertype == 2 || Auth::user()->usertype == 3){
 
                 }else {
-                    return redirect('404s');
+                    return redirect('404');
                 }
             }
             
@@ -243,8 +253,9 @@ class OvertimeController extends Controller
 
         $data['employee'] = $employee;
         $data['overtime'] = $item[0];
-        $data['manager'] = User::find($item[0]->manager_id);
-        $data['supervisor'] = User::find($item[0]->supervisor_id);
+        $data['manager'] = ($item[0]->approved_id) ? User::withTrashed()->find($item[0]->approved_id) : User::withTrashed()->find($item[0]->manager_id);
+        $data['supervisor'] = ($item[0]->recommend_id) ? User::withTrashed()->find($item[0]->recommend_id) : User::withTrashed()->find($item[0]->supervisor_id);
+        $data['completer'] = $completer;
         $data['logs'] = Log::getLog('Overtime', $item[0]->id);
 
         return view('overtime.overtime_show', $data);
