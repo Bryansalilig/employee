@@ -178,7 +178,7 @@
                           <?php
                             }
                           ?>
-                        </div>
+                        </div> 
                         </div>
                       </li>
                       <li class="media col-6 px-2 flex-wrap"><h6 class="text-info m-b-10 w-100"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Completed by:</h6>
