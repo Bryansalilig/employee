@@ -169,7 +169,23 @@ Route::controller(OvertimeController::class)->group(function (){
 Route::get('newhires', [HomeController::class, 'newhires'])->name('newhires');
 Route::get('get-formatted-date', [HomeController::class, 'getFormattedDate'])->name('get-formatted-date');
 
-Route::resource('leave', LeaveController::class);
+// Route::resource('leave', LeaveController::class);
+
+Route::controller(LeaveController::class)->group(function () {
+  Route::get('leave', 'index')->name('leave');
+  // Route::get('employees-card', 'card')->name('employees.card');
+  // Route::get('separated-employees', 'separated')->name('employees.separated');
+  Route::get('leave-info/{slug}', 'show')->name('leave.show');
+  Route::get('leave/create', 'create')->name('leave.create');
+  Route::get('leave-edit/{slug}', 'edit')->name('leave.edit');
+  // Route::get('employee-view', 'view')->name('employee.view');
+  Route::post('leave-add', 'store')->name('leave.store');
+  Route::post('leave-recommend', 'recommend')->name('leave.recommend');
+  Route::post('leave-approve', 'approve')->name('leave.approve');
+  // Route::post('employee-reactivate', 'reactivate')->name('employee.reactivate');
+  // Route::post('employee-deactivate', 'deactivate')->name('employee.deactivate');
+});
+
 
 Route::controller(AttachController::class)->group(function () {
   Route::get('/attach/download/{key}/{id}', 'download')->name('attach.download');

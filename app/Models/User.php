@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon; 
-use Illuminate\Support\Facades\DB;
+use App\Models\EmployeeAccess;
+use App\Models\LeaveCreditData;
 use App\LeaveRequest;
 use App\UndertimeRequest;
 use App\OvertimeRequest;
 use App\DAInfraction;
 use App\Referral;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Spatie\Valuestore\Valuestore;
 
 class User extends Authenticatable
@@ -345,5 +347,24 @@ class User extends Authenticatable
         array_multisort($data);
 
         return $data;
+    }
+
+    public function getAccess()
+    {
+        $access = EmployeeAccess::where('employee_id', $this->id)->first();
+
+        return $access;
+    }
+
+    public function isLeader()
+    {
+        return count(DB::select("SELECT id FROM `employee_info` WHERE `employee_info`.`deleted_at` IS NULL AND `employee_info`.`status` = 1 AND (`employee_info`.`manager_id`={$this->id} OR `employee_info`.`supervisor_id`={$this->id} OR `employee_info`.`approver_id`={$this->id})"));
+    }
+
+    public function leaveCredit()
+    {
+        $credit = LeaveCreditData::where('employee_id', $this->id)->sum('credit');
+
+        return $this->is_regular ? number_format($credit, 2) : 0;
     }
 }

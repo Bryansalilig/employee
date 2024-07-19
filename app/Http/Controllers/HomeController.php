@@ -1,110 +1,167 @@
 <?php
+/**
+ * Controller for the Landing Page
+ *
+ * This controller handles the sliders and other data.
+ *
+ * @version 1.0
+ * @since 2024-04-20
+ *
+ * Changes:
+ * - 2024-03-20: File creation
+ * - 2024-04-23:
+ *    - Add Banner data
+ */
 
+// Declare the namespace for the controller
 namespace App\Http\Controllers;
 
-
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Route;
+// Import necessary classes for the controller
+use App\Models\Banner;
 use App\Models\DAInfraction;
 use App\Models\ElinkActivities;
 use App\Models\EmployeeInfoDetails;
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
-use App\Models\Posts;
+use App\Models\Referral;
 use App\Models\UndertimeRequest;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 
+// Controller class definition
 class HomeController extends Controller
 {
-    public function index(Request $request)
-    {
-        // $this->getCredits();
+  /**
+   * @var array
+   */
+  public static $data = [];
 
-        // if(Auth::check() && Auth::user()->isAdmin()) {
-        //     return redirect('dashboard');
-        // }
+  /**
+   * Constructor method to set up session data.
+   *
+   * This method initializes session variables for view and menu navigation
+   * within the Board > Event module.
+   */
+  public function __construct()
+  {
+    // Set variables for view and menu navigation
+    self::$data['menu'] = 'dashboard';
+  }
 
-        $data['posts'] = Posts::where('enabled', '1')->get();
-        $data['new_hires'] = User::allExceptSuperAdmin()->orderBy('prod_date', 'DESC')->paginate(5);
-        // $data['employees'] = User::allExceptSuperAdmin()->get();
-        $data['birthdays'] = User::allExceptSuperAdmin()->whereRaw('MONTH(birth_date) = '.date('n'))->whereRaw('deleted_at is null')->where("status","=",1)->orderByRaw('DAYOFMONTH(birth_date) ASC')->get();
-        $data['engagements'] = ElinkActivities::getActivities();
-        // $data['dashboard'] = 0;
+  /**
+   * Method to display data that can be viewed by all users.
+   *
+   * @return \Illuminate\Contracts\View\View
+   */
+  public function index(Request $request)
+  {
+    self::$data['submenu'] = 'home';
+    self::$data['banners'] = Banner::where('status', '1')->get();
+    self::$data['new_hires'] = User::allExceptSuperAdmin()->where('position_name', '<>', 'CEO')->orderBy('hired_date', 'DESC')->get();
+    self::$data['birthdays'] = User::allExceptSuperAdmin()->whereRaw('MONTH(birth_date) = ?', date('n'))->whereNull('deleted_at')->where('status', '1')->orderByRaw('DAYOFMONTH(birth_date) ASC')->get();
+    self::$data['today_birthdays'] = User::allExceptSuperAdmin()->whereRaw("DATE_FORMAT(birth_date, '%m-%d') = ?", date('m-d'))->whereNull('deleted_at')->where('status', '1')->get();
+    self::$data['engagements'] = ElinkActivities::getActivities();
 
-        return view('home', $data);
-    }
+    return view('home', self::$data);
+  }
 
-    public function dashboard(Request $request)
-    {
-        $data['new_hires'] = User::allExceptSuperAdmin()->whereRaw('MONTH(prod_date) = '.date('n'))->whereRaw('YEAR(prod_date) = '.date('Y'))->whereRaw('deleted_at is null')->where("status", 1)->count();
-        $data['old_hires'] = User::allExceptSuperAdmin()->whereRaw('MONTH(prod_date) = '.date('n', strtotime('last month')))->whereRaw('YEAR(prod_date) = '.date('Y', strtotime('last month')))->whereRaw('deleted_at is null')->where("status", 1)->count();
-        $data['new_leave'] = LeaveRequest::whereRaw('MONTH(created_at) = '.date('n'))->whereRaw('YEAR(created_at) = '.date('Y'))->count();
-        $data['old_leave'] = LeaveRequest::whereRaw('MONTH(created_at) = '.date('n', strtotime('last month')))->whereRaw('YEAR(created_at) = '.date('Y', strtotime('last month')))->count();
-        $data['new_overtime'] = LeaveRequest::whereRaw('MONTH(created_at) = '.date('n'))->whereRaw('YEAR(created_at) = '.date('Y'))->count();
-        $data['new_overtime'] = OvertimeRequest::withTrashed()->whereRaw('MONTH(created_at) = '.date('n'))->whereRaw('YEAR(created_at) = '.date('Y'))->count();
-        $data['old_overtime'] = OvertimeRequest::withTrashed()->whereRaw('MONTH(created_at) = '.date('n', strtotime('last month')))->whereRaw('YEAR(created_at) = '.date('Y', strtotime('last month')))->count();
-        $data['new_undertime'] = UndertimeRequest::withTrashed()->whereRaw('MONTH(created_at) = '.date('n'))->whereRaw('YEAR(created_at) = '.date('Y'))->count();
-        $data['old_undertime'] = UndertimeRequest::withTrashed()->whereRaw('MONTH(created_at) = '.date('n', strtotime('last month')))->whereRaw('YEAR(created_at) = '.date('Y', strtotime('last month')))->count();
-        // $data['new_infraction'] = DAInfraction::withTrashed()->whereRaw('MONTH(created_at) = '.date('n'))->whereRaw('YEAR(created_at) = '.date('Y'))->count();
-        // $data['old_infraction'] = DAInfraction::withTrashed()->whereRaw('MONTH(created_at) = '.date('n', strtotime('last month')))->whereRaw('YEAR(created_at) = '.date('Y', strtotime('last month')))->count();
-        $data['new_attrition'] = EmployeeInfoDetails::whereRaw('MONTH(resignation_date) = '.date('n'))->whereRaw('YEAR(resignation_date) = '.date('Y'))->count();
-        $data['old_attrition'] = EmployeeInfoDetails::whereRaw('MONTH(resignation_date) = '.date('n', strtotime('last month')))->whereRaw('YEAR(resignation_date) = '.date('Y', strtotime('last month')))->count();
-        $data['dashboard'] = 1;
+  /**
+   * Method to display data and statistics that can be viewed by administrators.
+   *
+   * @return \Illuminate\Contracts\View\View
+   */
+  public function dashboard(Request $request)
+  {
+    self::$data['submenu'] = 'dashboard';
+    self::getWidget();
+    self::getNewHires();
+    self::getAttritionChart();
 // echo '<pre>';
-// print_r($data);
+// print_r(self::$data);
 // return;
-        return view('dashboard', $data);
+    return view('dashboard', self::$data);
+  }
+
+  public function newhires(Request $request)
+  {
+    $users = User::allExceptSuperAdmin()->orderBy('prod_date', 'DESC')->paginate(5);
+    foreach($users as $user) {
+      $user->fullname = $user->fullname();
+      $user->prod_date = customDate($user->prod_date, 'M d, Y');
     }
 
-    public function newhires(Request $request)
-    {
-        $users = User::allExceptSuperAdmin()->orderBy('prod_date', 'DESC')->paginate(5);
-        foreach($users as $user) {
-            $user->fullname = $user->fullname();
-            $user->prod_date = customDate($user->prod_date, 'M d, Y');
-        }
+    return $users;
+  }
 
-        return $users;
+  public function getFormattedDate(Request $request)
+  {
+    return customDate($request->date, $request->string);
+  }
+
+  private function getWidget()
+  {
+    $current = date('Y-n');
+    $previous = date('Y-n', strtotime('last month'));
+
+    self::$data['new_hires'] = User::allExceptSuperAdmin()->whereNull('deleted_at')->where('status', 1)->whereRaw("DATE_FORMAT(prod_date, '%Y-%c') = ?", $current)->count();
+    self::$data['old_hires'] = User::allExceptSuperAdmin()->whereNull('deleted_at')->where('status', 1)->whereRaw("DATE_FORMAT(prod_date, '%Y-%c') = ?", $previous)->count();
+    self::$data['new_leave'] = LeaveRequest::whereRaw("DATE_FORMAT(created_at, '%Y-%c') = ?", $current)->count();
+    self::$data['old_leave'] = LeaveRequest::whereRaw("DATE_FORMAT(created_at, '%Y-%c') = ?", $previous)->count();
+    self::$data['new_overtime'] = OvertimeRequest::withTrashed()->whereRaw("DATE_FORMAT(created_at, '%Y-%c') = ?", $current)->count();
+    self::$data['old_overtime'] = OvertimeRequest::withTrashed()->whereRaw("DATE_FORMAT(created_at, '%Y-%c') = ?", $previous)->count();
+    self::$data['new_undertime'] = UndertimeRequest::withTrashed()->whereRaw("DATE_FORMAT(created_at, '%Y-%c') = ?", $current)->count();
+    self::$data['old_undertime'] = UndertimeRequest::withTrashed()->whereRaw("DATE_FORMAT(created_at, '%Y-%c') = ?", $previous)->count();
+    self::$data['new_attrition'] = EmployeeInfoDetails::whereRaw("DATE_FORMAT(resignation_date, '%Y-%c') = ?", $current)->count();
+    self::$data['old_attrition'] = EmployeeInfoDetails::whereRaw("DATE_FORMAT(resignation_date, '%Y-%c') = ?", $previous)->count();
+    self::$data['new_infraction'] = DAInfraction::withTrashed()->whereRaw("DATE_FORMAT(created_at, '%Y-%c') = ?", $current)->count();
+    self::$data['old_infraction'] = DAInfraction::withTrashed()->whereRaw("DATE_FORMAT(created_at, '%Y-%c') = ?", $previous)->count();
+    self::$data['new_referral'] = Referral::whereRaw("DATE_FORMAT(created_at, '%Y-%c') = ?", $current)->count();
+    self::$data['old_referral'] = Referral::whereRaw("DATE_FORMAT(created_at, '%Y-%c') = ?", $previous)->count();
+
+    return self::$data;
+  }
+
+  private function getNewHires()
+  {
+    $current = ['1' => 0, '2' => 0, '3' => 0, '4' => 0, '5' => 0, '6' => 0, '7' => 0, '8' => 0, '9' => 0, '10' => 0, '11' => 0, '12' => 0];
+    $users = User::whereRaw("YEAR(prod_date) = ?", date('Y'))->get();
+    foreach ($users as $user) {
+      $current[date('n', strtotime($user->prod_date))] += 1;
     }
 
-    public function getFormattedDate(Request $request)
-    {
-        return customDate($request->date, $request->string);
+    $previous = ['1' => 0, '2' => 0, '3' => 0, '4' => 0, '5' => 0, '6' => 0, '7' => 0, '8' => 0, '9' => 0, '10' => 0, '11' => 0, '12' => 0];
+    $users = User::whereRaw("YEAR(prod_date) = ?", date('Y') - 1)->get();
+    foreach ($users as $user) {
+      $previous[date('n', strtotime($user->prod_date))] += 1;
     }
 
-    // private function getCredits()
-    // {
-    //     $obj = DB::select("
-    //         SELECT 
-    //             id
-    //         FROM
-    //             employee_info
-    //         WHERE
-    //             status = 1 AND 
-    //             deleted_at IS NULL AND 
-    //             eid LIKE 'ESCC-%';
-    //     ");
+    self::$data['hires']['current'] = json_encode(array_values($current));
+    self::$data['hires']['previous'] = json_encode(array_values($previous));
 
-    //     foreach($obj as $e) {
-    //         $year = 2023;
+    return self::$data;
+  }
 
-    //         $archive = LeaveCreditArchive::where('employee_id', $e->id)->where('year', $year)->where('type', 99)->where('status', 1)->first();
-    //         $credit = LeaveCredits::where('employee_id', $e->id)->where('year', $year)->where('type', 2)->where('status', 1)->first();
+  private function getAttritionChart()
+  {
+    $current = ['1' => 0, '2' => 0, '3' => 0, '4' => 0, '5' => 0, '6' => 0, '7' => 0, '8' => 0, '9' => 0, '10' => 0, '11' => 0, '12' => 0];
+    $details = EmployeeInfoDetails::whereRaw("YEAR(resignation_date) = ?", date('Y'))->get();
+    foreach ($details as $detail) {
+      $current[date('n', strtotime($detail->resignation_date))] += 1;
+    }
 
-    //         if(!empty($archive) && empty($credit)){
-    //             $credit = new LeaveCredits();
-    //             $credit->employee_id = $e->id;
-    //             $credit->credit = $archive->credit;
-    //             $credit->type = 2;
-    //             $credit->month = 0;
-    //             $credit->year = $year;
-    //             $credit->leave_id = 0;
-    //             $credit->status = 1;
-    //             $credit->save();
-    //         }
-    //     }
-    // }
+    $previous = ['1' => 0, '2' => 0, '3' => 0, '4' => 0, '5' => 0, '6' => 0, '7' => 0, '8' => 0, '9' => 0, '10' => 0, '11' => 0, '12' => 0];
+    $details = EmployeeInfoDetails::whereRaw("YEAR(resignation_date) = ?", date('Y') - 1)->get();
+    foreach ($details as $detail) {
+      $previous[date('n', strtotime($detail->resignation_date))] += 1;
+    }
+
+    self::$data['attrition']['current'] = json_encode(array_values($current));
+    self::$data['attrition']['previous'] = json_encode(array_values($previous));
+
+    return self::$data;
+  }
 } 

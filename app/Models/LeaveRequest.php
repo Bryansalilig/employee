@@ -50,6 +50,38 @@ class LeaveRequest extends Model
         return $query->where('approve_status_id', '=', 0)->orWhereNull('approve_status_id');
     }
 
+    public function getStatus($param = 'status')
+    {
+        $status = 'Pending';
+        $badge = 'primary';
+        switch ($this->approve_status_id) {
+            case 1: 
+                $status = 'Approved'; 
+                $badge = "success";
+                break;
+            case 2: 
+                $status = 'Cancelled'; 
+                $badge = "danger";
+                break;
+            case 3: 
+                $status = 'Recommended'; 
+                $badge = "warning";
+                break;
+        }
+
+        $data = array('status' => $status, 'badge' => $badge);
+
+        return $data[$param];
+    }
+
+    public function getCategory()
+    {
+      $leave_type = "<span class='badge bg-purple'>Unplanned</span>";
+      if($this->pay_type_id == 1) { $leave_type = "<span class='badge badge-info'>Planned</span>"; }
+
+      return $leave_type;
+    }
+
     public function recipients()
     {
         $settings = Valuestore::make(storage_path('app/settings.json'));
