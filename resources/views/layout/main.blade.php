@@ -36,11 +36,11 @@
     <script>
       // Enable pusher logging - don't include this in production
       Pusher.logToConsole = true;
-      
+
       var pusher = new Pusher('4b3d19212d902a3e44e3', {
         cluster: 'ap1'
       });
-      
+
       var channel = pusher.subscribe('overtime-channel');
       channel.bind('overtime-event', function(data) {
         var notifId = data.notif_Id;
@@ -51,21 +51,21 @@
         var id = $('#user-id').attr('data-id');
         // Split first name by spaces
         var firstNameParts = result.first_name.split(' ');
-      
+
         // Split last name by spaces
         var lastNameParts = result.last_name.split(' ');
-      
+
         // Capitalize the first letter of each word in first name
         var capitalizedFirstName = firstNameParts.map(function(word) {
             return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
         }).join(' ');
-      
+
         // Capitalize the first letter of each word in last name
         var capitalizedLastName = lastNameParts.map(function(word) {
             return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
         }).join(' ');
 
-      
+
         if (result.supervisor_id == id) {
             // Show Toastify notification
             Toastify({
@@ -76,7 +76,7 @@
             }).showToast();
             // Add the 'notify-signal' class to the <span> tag inside the bell icon
             $('.fa.fa-bell-o.rel > span').addClass('notify-signal');
-      
+
             // Get the current time
             var currentTime = new Date();
             $('.no_notif').addClass('d-none');
@@ -102,13 +102,13 @@
                 </div>
             </a>
             `);
-      
+
             // Calculate the time difference for this item
             var dataTime = new Date();
             var timeDifference = Math.floor((currentTime.getTime() - dataTime.getTime()) / (1000 * 60));
             var timeAgo = (timeDifference === 0 || timeDifference === -1) ? 'just now' : timeDifference + ' mins ago';
             listItem.find('.text-muted').text(timeAgo);
-      
+
             // Append the item to the list if total results are less than 5
             var tres = $('.list-group-item-dy').find('a.list-group-item').length;
             if (tres < 5) {
@@ -120,7 +120,7 @@
 
             // Count total results and update the .total element
             $('.total').text(totalCount);
-      
+
             // Update time every minute
             setInterval(function() {
                 currentTime = new Date();
@@ -131,25 +131,25 @@
         }
       });
 
-   // Define the updateTime() function, which updates the displayed time
-function updateTime() {
-    // Select all elements with the class "createdAt"
-    const timestamps = document.querySelectorAll(".createdAt");
-    
-    // Iterate over each element with the class "createdAt"
-    timestamps.forEach(timestampElement => {
+      // Define the updateTime() function, which updates the displayed time
+      function updateTime() {
+      // Select all elements with the class "createdAt"
+      const timestamps = document.querySelectorAll(".createdAt");
+
+      // Iterate over each element with the class "createdAt"
+      timestamps.forEach(timestampElement => {
         // Get the timestamp from the "data-timestamp" attribute
         const timestamp = timestampElement.dataset.timestamp;
-        
+
         // Parse the timestamp string into a Date object
         const createdAt = new Date(timestamp);
-        
+
         // Get the current time
         const current_time = new Date();
-        
+
         // Calculate the time difference between the current time and the timestamp
         const time_diff = current_time - createdAt;
-        
+
         // Calculate the time difference in minutes and hours
         const minutes = Math.floor(time_diff / (1000 * 60));
         const hours = Math.floor(minutes / 60);
@@ -182,14 +182,14 @@ function updateTime() {
 
         // Store the calculated "X minutes ago" or "X hours ago" value in local storage
         localStorage.setItem(timestamp, timestampElement.nextElementSibling.innerText);
-    });
-}
+      });
+      }
 
-// Call updateTime() when the page loads
-window.addEventListener('load', updateTime);
+      // Call updateTime() when the page loads
+      window.addEventListener('load', updateTime);
 
-// Update time every minute using setInterval
-setInterval(updateTime, 60000); // 60000 milliseconds = 1 minute
+      // Update time every minute using setInterval
+      setInterval(updateTime, 60000); // 60000 milliseconds = 1 minute
 
     </script>
     <?php } ?>
@@ -328,45 +328,44 @@ setInterval(updateTime, 60000); // 60000 milliseconds = 1 minute
                     <a class="list-group-item-dy">
                     </a>
                     @php
-                        if (Auth::check()) {
-                            $notificationsData = getNotifications(Auth::user()->id);
-                        } else {
-                            $notificationsData = null;
-                        }
+                    if (Auth::check()) {
+                    $notificationsData = getNotifications(Auth::user()->id);
+                    } else {
+                    $notificationsData = null;
+                    }
                     @endphp
                     @if ($notificationsData)
-                        @foreach ($notificationsData['notifications'] as $index => $notification)
-                            <a class="list-group-item">
-                                <div class="media">
-                                <i class="fa fa-circle" aria-hidden="true" style="font-size:8px;color:red;position:absolute;margin-left:27px;margin-top:-4px"></i>
-                                    <div class="media-img">
-                                        <span class="badge badge-warning badge-big">
-                                          <i class="fa fa-clock-o" aria-hidden="true"></i></span>
-                                    </div>
-                                    <div class="media-body">
-                                        <div class="font-13">
-                                            <span class="noti">
-                                            <form action="<?= url('overtime/updateUnread')?>" method="post">
-                                            {{ csrf_field() }}
-                                            <input type="hidden" name="Id" value="{{ $notificationsData['Id'][$index] }}">
-                                            <input type="hidden" name="Url" value="{{ $notificationsData['url'][$index] }}">
-                                              <button type="submit" style="background-color:transparent;border:none;text-align:left;cursor: pointer;"><b>{{ $notification }}</b>
-                                            </button>
-                                            </form>
-                                          </span>
-                                        </div>
-                                        <span class="createdAt" style="margin-left:5px" data-timestamp="{{ $notificationsData['createdAt'][$index] }}"></span>
-                                        <small class="text-muted"></small>
-                                    </div>
-                                </div>
-                            </a>
-                        @endforeach
-                    @else
-                        <div>
-                            <p style="text-align:center;margin-top:100px" class="no_notif">No notification</p>
+                    @foreach ($notificationsData['notifications'] as $index => $notification)
+                    <a class="list-group-item">
+                      <div class="media">
+                        <i class="fa fa-circle" aria-hidden="true" style="font-size:8px;color:red;position:absolute;margin-left:27px;margin-top:-4px"></i>
+                        <div class="media-img">
+                          <span class="badge badge-warning badge-big">
+                          <i class="fa fa-clock-o" aria-hidden="true"></i></span>
                         </div>
+                        <div class="media-body">
+                          <div class="font-13">
+                            <span class="noti">
+                              <form action="<?= url('overtime/updateUnread')?>" method="post">
+                                {{ csrf_field() }}
+                                <input type="hidden" name="Id" value="{{ $notificationsData['Id'][$index] }}">
+                                <input type="hidden" name="Url" value="{{ $notificationsData['url'][$index] }}">
+                                <button type="submit" style="background-color:transparent;border:none;text-align:left;cursor: pointer;"><b>{{ $notification }}</b>
+                                </button>
+                              </form>
+                            </span>
+                          </div>
+                          <span class="createdAt" style="margin-left:5px" data-timestamp="{{ $notificationsData['createdAt'][$index] }}"></span>
+                          <small class="text-muted"></small>
+                        </div>
+                      </div>
+                    </a>
+                    @endforeach
+                    @else
+                    <div>
+                      <p style="text-align:center;margin-top:100px" class="no_notif">No notification</p>
+                    </div>
                     @endif
-
                   </div>
                 </li>
               </ul>

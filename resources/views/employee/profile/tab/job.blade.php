@@ -17,7 +17,7 @@
       <label>Account</label>
       <select class="form-control select2" name="account_id" required>
         @foreach($accounts as $account)
-        <option value="{{ $account->id }}" {{ $employee->account_id == $account->id ? " selected" : "" ; }}><?= $account->account_name ?></option>
+        <option value="{{ $account->id }}" {{ $employee->account_id == $account->id ? " selected" : "" }}><?= $account->account_name ?></option>
         @endforeach
       </select>
     </div>
@@ -87,8 +87,8 @@
     <div class="col-md-4 col-sm-6 col-12 form-group">
       <label class="d-block">Rehirable</label>
       <select class="form-control select2" name="rehirable">
-        <option value="1" {{ (isset($details->rehirable) && $details->rehirable == 1) ? "selected" : "" ; }}>Yes</option>
-        <option value="0" {{ (isset($details->rehirable) && $details->rehirable == 0) ? "selected" : "" ; }}>No</option>
+        <option value="1" {{ (isset($details->rehirable) && $details->rehirable == 1) ? "selected" : "" }}>Yes</option>
+        <option value="0" {{ (isset($details->rehirable) && $details->rehirable == 0) ? "selected" : "" }}>No</option>
       </select>
     </div>
     <div class="col-12 form-group">

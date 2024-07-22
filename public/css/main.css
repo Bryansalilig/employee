@@ -8,14 +8,13 @@
   clear: both; }
 
 html {
-  font-size: 14px; }
+  font-size: 13px; }
 
 body {
   overflow-x: hidden;
-  font-family: "Montserrat", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Open Sans', sans-serif;
   background-color: #f1f1f1;
-  color: #333; 
-}
+  color: #333; }
 
 a {
   cursor: pointer;
@@ -1254,9 +1253,9 @@ btn .caret {
     -webkit-align-items: center;
     -ms-flex-align: center;
     align-items: center;
-    height: 50px; }
+    height: 40px; }
     .ibox .ibox-head .ibox-title {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 600; }
       .ibox .ibox-head .ibox-title small {
         font-weight: 400;
@@ -1788,6 +1787,7 @@ body.fullscreen-mode {
     height: 33px;
     line-height: 33px;
     width: 34px;
+    z-index: 5;
     text-align: center; }
   .input-group-icon.right .input-icon {
     right: 0;
@@ -3166,7 +3166,7 @@ body.fixed-layout.sidebar-mini .content-wrapper {
   background-color: #f2f2f2;
   background-color: #f1f1f1;
   margin-left: 220px;
-  padding: 0 15px 10px 15px;
+  padding: 0 15px 60px 15px;
   -webkit-transition: margin .2s ease-in-out;
   -o-transition: margin .2s ease-in-out;
   transition: margin .2s ease-in-out;

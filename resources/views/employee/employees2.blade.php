@@ -56,19 +56,19 @@
    }
    .alphabet-search select{
    cursor: pointer !important;
-   padding: 7px; 
-   border-radius: 0px !important; 
+   padding: 7px;
+   border-radius: 0px !important;
    font-size: 11px !important;
    }
    .alphabet-search select.d-none{
    display: none;
    }
    .alphabet-search select#month_list{
-   width: 200px; 
+   width: 200px;
    }
    .alphabet-search .fa-filter{
-   color: #777; 
-   font-size: 18px; 
+   color: #777;
+   font-size: 18px;
    padding: 5px;
    }
    .alphabet-search .btn-clear{
@@ -90,7 +90,7 @@
       <div class="panel-heading">
          <div class="col-md-12">
          <i class="fa fa-home text-success"></i> / Employees > <span style="color:#3498db">Active Employees</span><br><br>
-        
+
          <?php
             if(!empty($logs)) {
                 ?>
@@ -160,7 +160,7 @@
                }
          ?>
 
-       
+
                <select id="position_list"<?= isset($request->position) ? '' : ' style="display:none"' ?>>
                   <option disabled selected>Search by Position:</option>
                   <?php
@@ -220,7 +220,7 @@
                                     <div class="col-md-2">
                                           <a class="fullname" href="{{ url("employee_info/{$employee->slug}") }}" >{{ $employee->fullname() }}</a>
                                        <h5 style="font-size:15px;font-weight:450"><?= $employee->position_name ?></h5>
-                                       <p class="employee-account" style="font-size:12px;font-weight:500">{{ $employee->team_name }} {{ isset($employee->account) ? "- ". $employee->account->account_name : "" ; }}</p>
+                                       <p class="employee-account" style="font-size:12px;font-weight:500">{{ $employee->team_name }} {{ isset($employee->account) ? "- ". $employee->account->account_name : "" }}</p>
                                     </div>
                                     <div class="col-md-3">
                                        <p>
@@ -266,7 +266,7 @@
                                        <div class="options">
                                           <a href="<?= url("employee_info/{$employee->slug}") ?>" title="View">
                                           <i class="fa fa-eye"></i>
-                                          </a>&nbsp;&nbsp;    
+                                          </a>&nbsp;&nbsp;
                                           <a href="<?= url("employee_info/{$employee->slug}/edit") ?>" title="Edit">
                                           <i class="fa fa-pencil"></i>
                                           </a>&nbsp;&nbsp;
@@ -300,7 +300,7 @@
    })
 </script>
 <script type="text/javascript">
-function rfc3986EncodeURIComponent (str) {  
+function rfc3986EncodeURIComponent (str) {
     return encodeURIComponent(str).replace(/[!'()*]/g, escape);
 }
 $(function() {

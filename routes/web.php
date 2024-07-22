@@ -1,26 +1,27 @@
 <?php
 
-use App\Http\Controllers\Board\ActivityController;
 use App\Http\Controllers\AttachController;
-use App\Http\Controllers\EmployeeInfoController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\LoginController;
-use App\Http\Controllers\Board\EventsController;
-use App\Http\Controllers\PaginationController;
-use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\Board\ActivityController;
 use App\Http\Controllers\Board\BannerController;
-use App\Http\Controllers\MovementController;
-use App\Http\Controllers\LinkingController;
-use App\Http\Controllers\EvaluationController;
-use App\Http\Controllers\DevelopmentController;
+use App\Http\Controllers\Board\EventsController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DevelopmentController;
+use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\EmailReminderController;
 use App\Http\Controllers\EmailRemindersController;
-use App\Http\Controllers\DownloadController;
-use App\Http\Controllers\ReferralController;
-use App\Http\Controllers\OvertimeController;
+use App\Http\Controllers\EmployeeInfoController;
+use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\InboxController;
+use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\LinkingController;
 use App\Http\Controllers\LogController;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\MovementController;
+use App\Http\Controllers\OvertimeController;
+use App\Http\Controllers\PaginationController;
+use App\Http\Controllers\ReferralController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -224,4 +225,8 @@ Route::controller(LogController::class)->group(function () {
 Route::middleware(['auth'])->group(function () {
 
   Route::get('stop-reminder/{id}', [EmailRemindersController::class, 'stopReminder']);
+});
+
+Route::controller(InboxController::class)->prefix('inbox')->group(function () {
+  Route::get('notifications', 'index')->name('notifications');
 });

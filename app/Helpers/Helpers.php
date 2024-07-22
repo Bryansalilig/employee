@@ -58,7 +58,7 @@ function monthDay($prod_date)
         return $dt->format('M d');
     } else {
         return "";
-    } 
+    }
 }
 function slashedDate($prod_date)
 {
@@ -67,7 +67,7 @@ function slashedDate($prod_date)
         return $dt->format('m/d/Y');
     } else {
         return "";
-    } 
+    }
 }
 
 function prettyDate($prod_date)
@@ -324,7 +324,7 @@ function getNotifications($receiver_id)
             $lowername = mb_strtolower($sender->fullname2(), 'UTF-8');
             $notifications[] = $userInfo->message . ' : ' . ucwords($lowername);
 						$Id[] = $userInfo->id;
-						$url[] = $userInfo->url; 
+						$url[] = $userInfo->url;
             $createdAt[] = date('Y-m-d\TH:i:s\Z', strtotime($userInfo->created_at));
         }
     } else {

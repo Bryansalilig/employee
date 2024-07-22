@@ -22,7 +22,7 @@ channel.bind('my-event', function(data) {
     <li class="breadcrumb-item"><a href="{{ route('home') }}"><i class="fa fa-home"></i></a></li>
     <li class="breadcrumb-item">Timekeeping</li>
     <li class="breadcrumb-item">Overtime</li>
-    <?php 
+    <?php
     function capitalizeFirstLetter($str) {
         return ucfirst($str);
     }
@@ -96,11 +96,11 @@ channel.bind('my-event', function(data) {
                     Recommended
                   </span>
                   <?php } else { ?>
-                    <span class="badge <?= 
-                    (timekeepingStatus($request) == 'Pending') ? 'bg-primary' : 
-                    ((timekeepingStatus($request) == 'Approved') ? 'bg-success' : 
-                    ((timekeepingStatus($request) == 'Verifying') ? 'bg-warning' : 
-                    ((timekeepingStatus($request) == 'Verified') ? 'bg-purple' : 
+                    <span class="badge <?=
+                    (timekeepingStatus($request) == 'Pending') ? 'bg-primary' :
+                    ((timekeepingStatus($request) == 'Approved') ? 'bg-success' :
+                    ((timekeepingStatus($request) == 'Verifying') ? 'bg-warning' :
+                    ((timekeepingStatus($request) == 'Verified') ? 'bg-purple' :
                     ((timekeepingStatus($request) == 'Completed') ? 'bg-info' :
                     ((timekeepingStatus($request) == 'Declined' || timekeepingStatus($request) == 'Not Approve' || timekeepingStatus($request) == 'Reverted') ? 'bg-danger' :
                     ''))))) ?>">
@@ -108,7 +108,7 @@ channel.bind('my-event', function(data) {
                   </span>
                   <?php } ?>
                 </td>
-                
+
                 @if (Auth::user()->isAdmin() && $type == 'completed')
                 <td><span class="d-none">{{ strtotime($request->completed_date) }}</span>{{ date('M d, Y', strtotime($request->completed_date)) }}</td>
                 <td>{{ $request->id }}</td>
