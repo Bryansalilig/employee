@@ -55,9 +55,9 @@
                    <label for="appraisess">Appraisee <span class="text-danger">*</span></label>
                     <ul class="list-group list-group-full list-group-divider">
                       <?php if(empty($_GET['record'])){ ?>
-                      
+
                       <select name="employee_id" class="form-control select2" <?= Auth::user()->isAdmin() ? '' : 'disabled' ?> >
-                
+
                         <?php
                           $i = 0;
                           $position = '';
@@ -76,7 +76,7 @@
                               $emid = $employee->id;
                               $fullname = $employee->last_name . ', ' . $employee->first_name;
                           }
-                          
+
                           $i++;
                           }
                           ?>
@@ -88,14 +88,14 @@
                         ?>
                       <input type="hidden" name="employee_id" value="<?= $employee->id ?>" data-position="<?= $employee->position_name ?>" data-department="<?= $employee->team_name ?>" data-photo="<?= $employee->profile_img ?>" data-fullname="<?= $employee->first_name . ' ' . $employee->lastname?>">
                       <input type="text" class="form-control" placeholder="Position" value="<?= $employee->first_name . ' ' . $employee->last_name?>" readonly>
-                      <?php 
+                      <?php
                         if($i == 0) {
                           $position = $employee->position_name;
                           $department = $employee->team_name;
                           $profile_img = $employee->profile_img;
                           $fullname = $employee->fullname;
                         }
-                        
+
                         $i++;
                         } ?>
                     <?php if(!Auth::user()->isAdmin()){?>
@@ -162,9 +162,7 @@
                 <div class="form-group text-right m-t-20">
                   <button type="submit" class="btn btn-info btn-rounded">Submit</button>
                 </div>
-                
                 </div>
-             
                 </div>
               </div>
             </div>
@@ -176,7 +174,7 @@
 </div>
 @endsection
 @section('script')
-<script type = "text/javascript">  
+<script type = "text/javascript">
 function loadEmployee(img, position, department, fullname, emid)
   {
    $('#profile-img').attr('src', img);
@@ -187,7 +185,7 @@ function loadEmployee(img, position, department, fullname, emid)
   }
   $(function () {
    loadEmployee('{{ $profile_img }}', '{{ $position }}', '{{ $department }}', '{{ $fullname }}', '{{ $emid }}');
-  
+
    $('.img-upload').click(function (e) {
      e.preventDefault();
      $('#modal-upload-photo').modal('show');
@@ -195,21 +193,21 @@ function loadEmployee(img, position, department, fullname, emid)
 
         var obj = $(this);
        var selected = obj.find(':selected');
-  
+
        var preview = $('#profile-img');
        preview.attr('src', '{{ URL::to("img/loading.gif") }}');
-  
-    
+
+
          loadEmployee(selected.data('photo'), selected.data('position'), selected.data('department'), selected.data('fullname'), selected.data('emid'));
-  
+
 
    $('.select2').change(function() {
        var obj = $(this);
        var selected = obj.find(':selected');
-  
+
        var preview = $('#profile-img');
        preview.attr('src', '{{ URL::to("img/loading.gif") }}');
-  
+
        setTimeout(function() {
          loadEmployee(selected.data('photo'), selected.data('position'), selected.data('department'), selected.data('fullname'), selected.data('emid'));
    }, 2000);
@@ -217,14 +215,14 @@ function loadEmployee(img, position, department, fullname, emid)
   });
   $('.select-title').change(function(e) {
       e.preventDefault();
-  
+
       var value = $(this).val(),
           title = $('input[name="title"]');
           br = $('#br');
-  
+
       title.addClass('d-none');
       br.addClass('d-none');
-  
+
       if(value == 'Others') {
           title.val('');
           title.removeClass('d-none');
@@ -240,7 +238,7 @@ function loadEmployee(img, position, department, fullname, emid)
         var obj = $(this),
             parent = obj.closest('.entry-content'),
             entry = parent.find('.row-entry:first'),
-            entry_last = parent.find('.row-entry:last'); 
+            entry_last = parent.find('.row-entry:last');
  // the reason why it find first and last is the clone the first and insertAfter the last entry
         var new_entry = entry.clone().insertAfter(entry_last);
             new_entry.find('.btn-add').html('<span class="fa fa-minus"></span>');

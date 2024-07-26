@@ -47,15 +47,15 @@ class OvertimeRequest extends Model
                 `employee_info`.`team_name`
             FROM
                 `overtime_request`
-            INNER JOIN 
+            INNER JOIN
                 `employee_info`
-            ON 
+            ON
                 `overtime_request`.`employee_id` = `employee_info`.`id`
             WHERE
                 `employee_info`.`deleted_at` IS NULL AND
                 `employee_info`.`status` = 1 {$query}
-            ORDER BY 
-                `overtime_request`.`created_at` 
+            ORDER BY
+                `overtime_request`.`created_at`
             DESC
         ");
 
@@ -80,7 +80,7 @@ class OvertimeRequest extends Model
             $data[$key]->time_in = $time_in;
             $data[$key]->time_out = $time_out;
         }
-        
+
 
         return $data;
     }

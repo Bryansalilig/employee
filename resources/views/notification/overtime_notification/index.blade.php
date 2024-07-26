@@ -4,7 +4,8 @@
   <link href="<?= asset('vendors/DataTables/datatables.min.css') ?>" rel="stylesheet" />
   <!-- Include Mailbox CSS -->
   <link href="{{ asset('pages/mailbox.css') }}" rel="stylesheet" />
-  @include('notification.style');
+  <script src="https://cdn.lordicon.com/lordicon.js"></script>
+  @include('notification.overtime_notification.style');
 @endsection
 @section('content')
   <!-- START PAGE CONTENT-->
@@ -66,7 +67,7 @@
         <div class="ibox" id="mailbox-container">
           <div class="mailbox-header">
             <div class="d-flex justify-content-between">
-              <h5 class="d-none d-lg-block inbox-title"><i class="fa fa-envelope-o m-r-5"></i> Inbox (15)</h5>
+              <h5 class="d-lg-block inbox-title"><i class="fa fa-envelope-o m-r-5"></i> Unread (<?= notificationCount(Auth::user()->id)?>)</h5>
               <div>
                 <span class="p-r-10"><img src="<?= URL::to('img/overtime.png') ?>" alt="" class="img-icon"
                     srcset=""></span>
@@ -76,25 +77,38 @@
           <div class="mailbox clf">
             <table class="table table-hover table-inbox" id="table-inbox">
               <tbody class="rowlinkx" data-link="row">
-              @foreach ($notifications as $notification)
-            <tr data-id="1">
-              <td class="check-cell rowlink-skip">
-                <img src="<?= URL::to('img/admin-avatar.png')?>" class="img-notif" alt="" srcset="">
-                </td>
-                <td>
-                  <a href="mail_view.html"><b>{{ $notification->emp_data->fullname2()}}</b></a><i class="fa fa-circle" aria-hidden="true" style="font-size:8px;color:red;position:absolute;margin-left:5px;margin-top:4px;display:{{ ($notification->status) ? 'none' : ''}}"></i>
-                  <br>
-                  <span class="{{ ($notification->status) ? 'read-sms' : 'unread-sms'}}">
-                    <span style="color: rgb(12, 14, 13);">Reason:</span>
-                    <span title="{{ htmlentities($notification->reason) }}">
-                      {{ stringLimit($notification->reason, 168) }}
-                    </span>
-                  </span>
-                  <span style="color: rgb(124, 143, 137)" class="createdAt" data-timestamp="{{ date('Y-m-d\TH:i:s\Z', strtotime($notification['created_at'])) }}"></span>
-                  <small class="text-muted"></small>
-                </td>
-                </tr>
-               @endforeach
+                @if (count($notifications) > 0)
+                  @foreach ($notifications as $notification)
+                    <tr data-id="1">
+                      <td class="check-cell rowlink-skip">
+                        <img src="<?= URL::to('img/admin-avatar.png') ?>" class="img-notif" alt="" srcset="">
+                      </td>
+                      <td>
+                        <a href="mail_view.html"><b>{{ $notification->emp_data->fullname2() }}</b></a><i
+                          class="fa fa-circle" aria-hidden="true"
+                          style="font-size:8px;color:red;position:absolute;margin-left:5px;margin-top:4px;display:{{ $notification->status ? 'none' : '' }}"></i>
+                        <br>
+                        <span class="{{ $notification->status ? 'read-sms' : 'unread-sms' }}">
+                          <span style="color: rgb(12, 14, 13);">Reason:</span>
+                          <span title="{{ htmlentities($notification->reason) }}">
+                            {{ stringLimit($notification->reason, 168) }}
+                          </span>
+                        </span>
+                        <span style="color: rgb(124, 143, 137)" class="createdAt"
+                          data-timestamp="{{ date('Y-m-d\TH:i:s\Z', strtotime($notification['created_at'])) }}"></span>
+                        <small class="text-muted"></small>
+                      </td>
+                    </tr>
+                  @endforeach
+                @else
+                  <tr>
+                    <td style="text-align: center;">
+                     <img src="<?= URL::to('img/output-onlinegiftools.gif') ?>" alt="" srcset="">
+                     <br>
+                     <h5>No Notifications</h5>
+                      </td>
+                  </tr>
+                @endif
               </tbody>
             </table>
           </div>
@@ -105,7 +119,5 @@
   @section('script')
     <!-- Include DataTables JS -->
     <script src="<?= asset('vendors/DataTables/datatables.min.js') ?>" type="text/javascript"></script>
-    <script type="text/javascript">
-
-    </script>
+    <script type="text/javascript"></script>
   @endsection

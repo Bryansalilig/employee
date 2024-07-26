@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\OvertimeRequest;
 use App\Models\OvertimeRequestDetails;
 use App\Models\Notifications;
+use App\Models\NotificationDetails;
 use App\Events\OvertimeNotification;
 use App\Models\User;
 use App\Models\Log;
@@ -19,11 +20,18 @@ class OvertimeController extends Controller
 {
     public function index(Request $request)
     {
+
         $status = (($request->has('status') && $request->get('status') != "") ? $request->get('status') : 'pending');
         $id = Auth::user()->id;
-        
+        // echo "<pre>";
+        // echo $status;
+        // return;
+
         $data['overtime_request'] = OvertimeRequest::getOvertime($status, 'user', $id);
-    
+
+        // echo "<pre>";
+        // print_r($data['overtime_request']);
+        // return;
         $data['type'] = $status;
         $data['is_leader'] = count(DB::select("SELECT id FROM `employee_info` WHERE `employee_info`.`deleted_at` IS NULL AND `employee_info`.`status` = 1 AND (`employee_info`.`manager_id`={$id} OR `employee_info`.`supervisor_id`={$id})"));
         $data['status_filter'] = $request->input('status');
@@ -33,24 +41,34 @@ class OvertimeController extends Controller
         return view('overtime.overtime_request', $data);
     }
 
-    public function create() 
+    public function create()
     {
         $data['employees'] = User::AllExceptSuperAdmin()->activeEmployees()->orderBy('first_name')->get();
 
         return view('overtime.create', $data);
     }
 
-    public function store(Request $request) 
+    public function store(Request $request)
     {
+
         $employee = User::withTrashed()->find($request->employee_id);
 
         $notif = new Notifications();
         $notif->sender_id = $request->employee_id;
-        $notif->receiver_id = $employee->supervisor_id;
         $notif->module = "Overtime";
         $notif->message = "Filed Overtime";
         $notif->reason = $request->reason;
-        $notif->save();
+
+        if($notif->save()) {
+            $notif_details = new NotificationDetails();
+            $notif_details->notif_id = $notif->id;
+            $notif_details->supervisor_id = $employee->supervisor_id;
+            $notif_details->manager_id = $employee->manager_id;
+            if ($notif_details->approver_id == 0) {
+                $notif_details->approver_id = $employee->manager_id;
+            }
+            $notif_details->save();
+        }
 
         if(!$employee) {
             return Redirect::route('error404');
@@ -93,6 +111,9 @@ class OvertimeController extends Controller
         $overtime->slug = $slug;
         $overtime->save();
 
+        $notif->url =  url("overtime/".$overtime->slug);
+        $notif->save();
+
         $supervisor = User::find($employee->supervisor_id);
         $manager = User::find($employee->manager_id);
 
@@ -103,20 +124,18 @@ class OvertimeController extends Controller
         $data['emp_name'] = 'CC MAIL';
         $data['reason'] = $request->reason;
 
-        if(!empty($supervisor->id)) {
+        if(!empty($supervisor->id) || !empty($manager->id)) {
             $data['emp_name'] = strtoupper($supervisor->first_name);
 
-            $notif->url =  url("overtime/".$overtime->slug);
-            $notif->save();
-    
             event(new OvertimeNotification($notif->id, $notif->message, $notif->reason, $notif->url, $employee));
+
+            if(!empty($supervisor->id)) {
             // Mail::to($supervisor->email)->send(new OvertimeNotification($data));
-        }
+            }
 
-        if(!empty($manager->id)) {
-            $data['emp_name'] = strtoupper($manager->first_name);
-
-            // Mail::to($manager->email)->send(new OvertimeNotification($data));
+            if(!empty($manager->id)) {
+             // Mail::to($manager->email)->send(new OvertimeNotification($data));
+            }
         }
 
         // Mail::to($employee->email)->send(new OvertimeSelfNotification(['emp_name' => strtoupper($employee->first_name)]));
@@ -195,10 +214,10 @@ class OvertimeController extends Controller
         if ($request->ajax()) {
             $senderId = $request->sender_id;
             $reason = $request->reason;
-            
+
             // Find the notification record
             $notification = Notifications::where('sender_id', $senderId)->where('reason', $reason)->first();
-            
+
             // Update the status
             if ($notification) {
                 $notification->status = 1;
@@ -211,7 +230,7 @@ class OvertimeController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
     }
-    
+
 
     public function show($slug)
     {
@@ -224,7 +243,7 @@ class OvertimeController extends Controller
         // print_r($item[0]);
         // return;
         $completer = User::withTrashed()->find($item[0]->completed_id);
-       
+
         if (empty($completer)){
             $completer = User::withTrashed()->find($item[0]->approver_id);
 
@@ -233,7 +252,7 @@ class OvertimeController extends Controller
             }
         }
         $overtime = OvertimeRequest::withTrashed()->where('slug', $slug)->first();
-        
+
         $employee = User::withTrashed()->where('id', $overtime->employee_id)->first();
 
         if(Auth::user()->usertype == 2 || Auth::user()->usertype == 3){
@@ -244,7 +263,7 @@ class OvertimeController extends Controller
                     return redirect('404');
                 }
             }
-            
+
         } else if (Auth::user()->usertype == 1 && !Auth::user()->isAdmin()){
             if(Auth::user()->id != $item[0]->employee_id){
                 return redirect('404');
@@ -275,7 +294,13 @@ class OvertimeController extends Controller
 
     public function recommend(Request $request)
     {
+        echo "<pre>";
+        echo $request->id;
+        return;
         $overtime = OvertimeRequest::withTrashed()->find($request->id);
+        echo "<pre>";
+        print_r($overtime);
+        return;
         if(empty($overtime)) {
             return redirect('/404');
             exit;
@@ -307,7 +332,7 @@ class OvertimeController extends Controller
 
                 // Mail::to('hrd@elink.com.ph')->send(new OvertimeReminder($data));
             } else {
-                $data['leader_name'] = strtoupper($manager->first_name); 
+                $data['leader_name'] = strtoupper($manager->first_name);
 
                 // Mail::to($manager->email)->send(new OvertimeReminder($data));
             }
@@ -320,10 +345,15 @@ class OvertimeController extends Controller
 
     public function updateUnread(Request $request)
     {
-        $notification = Notifications::find($request->Id);
+        $notification = NotificationDetails::where('notif_id', $request->Id)->first();
 
-        $notification->status = 1;
-        
+        if ($notification->supervisor_id == Auth::user()->id) {
+            $notification->supervisor_status = 1;
+        }
+        if ($notification->manager_id == Auth::user()->id) {
+            $notification->manager_status = 1;
+        }
+
         if ($notification->save()) {
             return redirect($request->Url);
         } else {

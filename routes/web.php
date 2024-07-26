@@ -228,5 +228,5 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::controller(InboxController::class)->prefix('inbox')->group(function () {
-  Route::get('notifications', 'index')->name('notifications');
+  Route::get('overtime_notification', 'index')->name('overtime_notification');
 });
