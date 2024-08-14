@@ -48,7 +48,7 @@
           <span>{{ $item->subtitle }}</span>
           <a class="btn btn-default btn-xs float-right" href="{{ $item->file_url }}" download="{{ $item->subtitle }}"><i class="fa fa-download"></i></a>
           <a class="btn btn-default btn-xs float-right" href="{{ $item->file_url }}" target="_blank"><i class="fa fa-eye"></i></a>
-        </div> 
+        </div>
       </div>
     </div>
     @endforeach

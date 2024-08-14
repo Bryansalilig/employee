@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
@@ -84,4 +85,12 @@ class OvertimeRequest extends Model
 
         return $data;
     }
+    public static function getNotificationData($ot_slug){
+        $overtime_data = DB::table('overtime_request')
+                            ->where('slug', $ot_slug)
+                            ->first();
+
+        return $overtime_data;
+    }
+
 }

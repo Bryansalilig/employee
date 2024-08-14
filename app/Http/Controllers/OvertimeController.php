@@ -50,7 +50,6 @@ class OvertimeController extends Controller
 
     public function store(Request $request)
     {
-
         $employee = User::withTrashed()->find($request->employee_id);
 
         $notif = new Notifications();
@@ -65,7 +64,11 @@ class OvertimeController extends Controller
             $notif_details->supervisor_id = $employee->supervisor_id;
             $notif_details->manager_id = $employee->manager_id;
             if ($notif_details->approver_id == 0) {
-                $notif_details->approver_id = $employee->manager_id;
+                if ($employee->approver_id) {
+                    $notif_details->approver_id = $employee->approver_id;
+                } else {
+                    $notif_details->approver_id = $employee->manager_id;
+                }
             }
             $notif_details->save();
         }
@@ -110,7 +113,8 @@ class OvertimeController extends Controller
 
         $overtime->slug = $slug;
         $overtime->save();
-
+        $notif_details->ot_slug = $overtime->slug;
+        $notif_details->save();
         $notif->url =  url("overtime/".$overtime->slug);
         $notif->save();
 
@@ -200,6 +204,7 @@ class OvertimeController extends Controller
         $log->save();
 
         if($overtime->save()){
+            event(new OvertimeNotification($request->notif_id, 'Approved', '', $request->url, $employee));
             // Mail::to($employee->email)->send(new OvertimeApproved($data));
 
             return back()->with('success', 'Overtime Request successfully approved. . .');
@@ -235,6 +240,10 @@ class OvertimeController extends Controller
     public function show($slug)
     {
         $item = OvertimeRequest::getOvertime('', 'show', $slug);
+
+        $notif_details = NotificationDetails::join('notifications', 'notifications.id', '=', 'notification_details.notif_id')
+        ->where('ot_slug','=',$item[0]->slug)->first();
+
         if(count($item) <= 0) {
             return redirect('/404');
             exit;
@@ -269,7 +278,7 @@ class OvertimeController extends Controller
                 return redirect('404');
             }
         }
-
+        $data['notif_detail'] = $notif_details;
         $data['employee'] = $employee;
         $data['overtime'] = $item[0];
         $data['manager'] = ($item[0]->approved_id) ? User::withTrashed()->find($item[0]->approved_id) : User::withTrashed()->find($item[0]->manager_id);
@@ -294,13 +303,7 @@ class OvertimeController extends Controller
 
     public function recommend(Request $request)
     {
-        echo "<pre>";
-        echo $request->id;
-        return;
         $overtime = OvertimeRequest::withTrashed()->find($request->id);
-        echo "<pre>";
-        print_r($overtime);
-        return;
         if(empty($overtime)) {
             return redirect('/404');
             exit;
@@ -345,7 +348,17 @@ class OvertimeController extends Controller
 
     public function updateUnread(Request $request)
     {
-        $notification = NotificationDetails::where('notif_id', $request->Id)->first();
+        // Ensure that `notifId` exists in the request
+        $notifId = $request->notifId;
+        if (!$notifId) {
+            return back()->with('error', 'Notification ID is missing.');
+        }
+
+        $notification = NotificationDetails::where('notif_id', $notifId)->first();
+
+        if (!$notification) {
+            return back()->with('error', 'Notification not found.');
+        }
 
         if ($notification->supervisor_id == Auth::user()->id) {
             $notification->supervisor_status = 1;
@@ -355,9 +368,15 @@ class OvertimeController extends Controller
         }
 
         if ($notification->save()) {
-            return redirect($request->Url);
+            $url = $request->Url;
+            if ($url) {
+                return redirect($url);
+            } else {
+                return back()->with('error', 'Something went wrong.');
+            }
         } else {
-            return back()->with('error', 'Course not found or something went wrong.');
+            return back()->with('error', 'Failed to update notification status.');
         }
     }
+
 }

@@ -359,7 +359,7 @@
           <button type="submit" style="margin-right:5px;" class="btn btn-primary btn-rounded">Recommend</button>
         </form>
         <?php }
-          if(Auth::user()->isAdmin() || Auth::user()->usertype == 3) {
+          if(Auth::user()->isAdmin() || Auth::user()->usertype == 3 || Auth::user()->position_name == "Associate Manager") {
           if($overtime->status == 'VERIFYING' || $overtime->status == 'COMPLETED') {?>
         <button type="submit" style="margin-right:5px;" class="btn btn-success btn-rounded btn-submit">Revert</button>
         <?php } if($overtime->status == 'VERIFYING') {?>
@@ -369,6 +369,8 @@
         <?php } if(($overtime->status == 'PENDING' || $overtime->status == 'DECLINED') && (Auth::user()->isAdmin() || Auth::user()->id == $overtime->manager_id)) {?>
         <form action="<?= url('overtime/approve') ?>" method="POST">
           {{ csrf_field() }}
+          <input type="hidden" name="notif_id" value="<?= $notif_detail->notif_id ?>" />
+          <input type="hidden" name="url" value="<?= $notif_detail->url ?>" />
           <input type="hidden" name="id" value="<?= $overtime->id ?>" />
           <button type="submit" style="margin-right:5px;" class="btn btn-success btn-rounded btn-submit">Approve</button>
         </form>

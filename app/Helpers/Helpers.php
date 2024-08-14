@@ -322,7 +322,10 @@ if (!function_exists('getEmail')) {
 
 function getNotifications($receiver_id)
 {
+    $is_sender = [];
     $notifications = [];
+    $recommend_date = [];
+    $notifId = [];
     $Id = [];
     $url = [];
     $createdAt = [];
@@ -337,36 +340,67 @@ function getNotifications($receiver_id)
 
         // Retrieve details for manager notifications
         $managerDetails = NotificationDetails::join('notifications', 'notifications.id', '=', 'notification_details.notif_id')
+        ->leftJoin('overtime_request', 'overtime_request.slug', '=', 'notification_details.ot_slug')
         ->where('notification_details.manager_id', $receiver_id)
         ->where('notification_details.manager_status', 0)
         ->orderBy('notification_details.created_at', 'desc')
         ->take(4)
         ->get();
 
+        // Retrieve details for sender notifications
+        $sender = NotificationDetails::join('notifications', 'notifications.id', '=', 'notification_details.notif_id')
+        ->leftJoin('overtime_request', 'overtime_request.slug', '=', 'notification_details.ot_slug')
+        ->where('notifications.sender_id', $receiver_id)
+        ->where('notification_details.sender_status', 0)
+        ->orderBy('notification_details.created_at', 'desc')
+        ->take(4)
+        ->get();
+
         // Check if there are any supervisor details and perform actions
-        if ($supervisorDetails->isNotEmpty()) {
+        if (!empty($supervisorDetails)) {
             foreach ($supervisorDetails as $detail) {
                 if ($detail->supervisor_id == $receiver_id) {
+                    $is_sender = false;
                     $sender = User::find($detail->sender_id);
                     $lowername = mb_strtolower($sender->fullname2(), 'UTF-8');
                     $notifications[] = $detail->message . ' : ' . ucwords($lowername);
+                    $notifId[] = $detail->notif_id;
                     $Id[] = $detail->id;
                     $url[] = $detail->url;
-                    $createdAt[] = date('Y-m-d\TH:i:s\Z', strtotime($detail->created_at));
+                    $createdAt[] = date('Y-m-d\TH:i:s\Z', strtotime($detail->updated_at));
                 }
             }
         }
 
         // Check if there are any manager details and perform actions
-        if ($managerDetails->isNotEmpty()) {
+        if (!empty($managerDetails)) {
             foreach ($managerDetails as $detail) {
                 if ($detail->manager_id == $receiver_id) {
+                    $is_sender = false;
                     $sender = User::find($detail->sender_id);
                     $lowername = mb_strtolower($sender->fullname2(), 'UTF-8');
                     $notifications[] = $detail->message . ' : ' . ucwords($lowername);
+                    $recommend_date = $detail->recommend_date;
+                    $notifId[] = $detail->notif_id;
                     $Id[] = $detail->id;
                     $url[] = $detail->url;
-                    $createdAt[] = date('Y-m-d\TH:i:s\Z', strtotime($detail->created_at));
+                    $createdAt[] = date('Y-m-d\TH:i:s\Z', strtotime($detail->updated_at));
+                }
+            }
+        }
+
+           // Ensure $sender is not empty
+        if (!empty($sender)) {
+            $firstDetail = $sender->first();
+            foreach ($sender as $detail) {
+                if ($firstDetail->sender_id == $receiver_id) {
+                    $is_sender = true;
+                    $notifications[] = "Your Overtime has been Approved.";
+                    $recommend_date = $detail->recommend_date;
+                    $notifId[] = $detail->notif_id;
+                    $Id[] = $detail->id;
+                    $url[] = $detail->url;
+                    $createdAt[] = date('Y-m-d\TH:i:s\Z', strtotime($detail->updated_at));
                 }
             }
         }
@@ -377,8 +411,11 @@ function getNotifications($receiver_id)
     }
 
     return [
+        'is_sender' => $is_sender,
         'notifications' => $notifications,
+        'recommend_data' => $recommend_date,
         'createdAt' => $createdAt,
+                'notifId' => $notifId,
                 'Id' => $Id,
                 'url' => $url
     ];
@@ -395,14 +432,39 @@ function hasUnread($receiver_id)
     if ($manager_unread) {
         return $manager_unread;
     }
-
 }
 
 function notificationCount($receiver_id)
 {
-    // $notifCount = Notifications::where('receiver_id', $receiver_id)->where('status', 0)->count();
+    $is_manager = User::find($receiver_id);
+    if ($is_manager){
+        if (stripos($is_manager->position_name, 'manager') !== false) {
+            $manager_notif_count = NotificationDetails::where('manager_id', $receiver_id)
+            ->where('manager_status', 0)
+            ->orWhere('supervisor_id', $receiver_id)->count();
 
-    // return $notifCount;
+            $manager = NotificationDetails::where('manager_id', $receiver_id)->first();
+
+            if ($manager_notif_count && $manager->manager_id == $receiver_id){
+                return $manager_notif_count;
+            } else {
+                return 0;
+            }
+        } else {
+            $supervisor_notif_count = NotificationDetails::where('supervisor_id', $receiver_id)
+            ->where('supervisor_status', 0)
+            ->count();
+
+            $supervisor = NotificationDetails::where('supervisor_id', $receiver_id)->first();
+
+            if ($supervisor_notif_count && $supervisor->supervisor_id == $receiver_id){
+                return $supervisor_notif_count;
+            } else {
+                return 0;
+            }
+        }
+    }
+
 }
 
 // function getNotification($receiver_id)

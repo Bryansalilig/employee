@@ -49,6 +49,8 @@
         var reason = data.reason;
         var url = data.url;
         var id = $('#user-id').attr('data-id');
+        var condition = '';
+        var notif_mess = '';
         // Split first name by spaces
         var firstNameParts = result.first_name.split(' ');
 
@@ -65,8 +67,15 @@
           return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
         }).join(' ');
 
+        if(message == "Approved"){
+            condition = result.id == id;
+            notif_mess = "Your Overtime has been Approved.";
+        } else {
+            condition = result.supervisor_id == id || result.manager_id == id;
+            notif_mess = message + ' : ' + capitalizedFirstName + capitalizedLastName;
+        }
 
-        if (result.supervisor_id == id || result.manager_id == id) {
+        if (condition) {
           // Show Toastify notification
           Toastify({
             text: "New message arrived ",
@@ -94,10 +103,10 @@
                           {{ csrf_field() }}
                           <input type="hidden" name="Id" value="${notifId}">
                           <input type="hidden" name="Url" value="${url}">
-                          <button type="submit" style="background-color:transparent;border:none;text-align:left;cursor: pointer;"><b>${message} : ${capitalizedFirstName} ${capitalizedLastName}</b></button>
+                          <button type="submit" style="background-color:transparent;border:none;text-align:left;cursor: pointer;"><b>${notif_mess}</b><small class="text-muted" style="margin-left:5px"></small></button>
                           </form>
                           </div>
-                          <small class="text-muted" style="margin-left:5px"></small> <!-- Display time ago -->
+                           <!-- Display time ago -->
                       </div>
                   </div>
               </a>
@@ -120,6 +129,7 @@
 
           // Count total results and update the .total element
           $('.total').text(totalCount);
+          $('.envelope-badge').text(totalCount);
 
           // Update time every minute
           setInterval(function() {
@@ -264,76 +274,12 @@
           <!-- END TOP-LEFT TOOLBAR-->
           <!-- START TOP-RIGHT TOOLBAR-->
           <ul class="nav navbar-toolbar">
-            <li class="dropdown dropdown-inbox">
-              <a class="nav-link dropdown-toggle" data-toggle="dropdown"><i class="fa fa-envelope-o"></i>
-              <span class="badge badge-primary envelope-badge">9</span>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-right dropdown-menu-media">
-                <li class="dropdown-menu-header">
-                  <div>
-                    <span><strong>9 New</strong> Messages</span>
-                    <a class="pull-right" href="mailbox.html">view all</a>
-                  </div>
-                </li>
-                <li class="list-group list-group-divider scroller" data-height="240px" data-color="#71808f">
-                  <div>
-                    <a class="list-group-item">
-                      <div class="media">
-                        <div class="media-img">
-                          <img src="img/users/u1.jpg" />
-                        </div>
-                        <div class="media-body">
-                          <div class="font-strong"> </div>
-                          Jeanne Gonzalez<small class="text-muted float-right">Just now</small>
-                          <div class="font-13">Your proposal interested me.</div>
-                        </div>
-                      </div>
-                    </a>
-                    <a class="list-group-item">
-                      <div class="media">
-                        <div class="media-img">
-                          <img src="img/users/u2.jpg" />
-                        </div>
-                        <div class="media-body">
-                          <div class="font-strong"></div>
-                          Becky Brooks<small class="text-muted float-right">18 mins</small>
-                          <div class="font-13">Lorem Ipsum is simply.</div>
-                        </div>
-                      </div>
-                    </a>
-                    <a class="list-group-item">
-                      <div class="media">
-                        <div class="media-img">
-                          <img src="img/users/u3.jpg" />
-                        </div>
-                        <div class="media-body">
-                          <div class="font-strong"></div>
-                          Frank Cruz<small class="text-muted float-right">18 mins</small>
-                          <div class="font-13">Lorem Ipsum is simply.</div>
-                        </div>
-                      </div>
-                    </a>
-                    <a class="list-group-item">
-                      <div class="media">
-                        <div class="media-img">
-                          <img src="img/users/u4.jpg" />
-                        </div>
-                        <div class="media-body">
-                          <div class="font-strong"></div>
-                          Rose Pearson<small class="text-muted float-right">3 hrs</small>
-                          <div class="font-13">Lorem Ipsum is simply.</div>
-                        </div>
-                      </div>
-                    </a>
-                  </div>
-                </li>
-              </ul>
-            </li>
             <li class="dropdown dropdown-notification">
               <!-- <a class="nav-link dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bell-o rel"><span class=""></span></i></a> -->
               <?php $userId = Auth::check() ? Auth::user()->id : 0; ?>
-              <a class="nav-link dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bell-o rel"><span
-                class="{{ hasUnread($userId) ? 'notify-signal' : '' }}"></span></i></a>
+              <a class="nav-link dropdown-toggle" data-toggle="dropdown"><i class="fa fa-envelope-o" style="font-size:20px;"></i>
+              <span class="badge badge-primary envelope-badge" style="background-color: red">{{ Auth::check() ? notificationCount(Auth::user()->id) : 0 }}</span>
+              </a>
               <ul class="dropdown-menu dropdown-menu-right dropdown-menu-media">
                 <li class="dropdown-menu-header">
                   <div>
@@ -341,7 +287,7 @@
                     <span><strong><span
                       class="total">{{ Auth::check() ? notificationCount(Auth::user()->id) : 0 }}</span>
                     Unread</strong> Notifications</span>
-                    <a class="pull-right" href="javascript:;">view all</a>
+                    <a class="pull-right" href="{{ route('overtime_notification')}}">view all</a>
                   </div>
                 </li>
                 <li class="list-group list-group-divider scroller" data-height="240px" data-color="#71808f">
@@ -357,6 +303,7 @@
                     @endphp
                     @if ($notificationsData)
                     @foreach ($notificationsData['notifications'] as $index => $notification)
+                    <?php $recommend_data = $notificationsData['recommend_data'][$index] ?? 0?>
                     <a class="list-group-item">
                       <div class="media">
                         <i class="fa fa-circle" aria-hidden="true"
@@ -370,19 +317,26 @@
                             <span class="noti">
                               <form action="<?= url('overtime/updateUnread') ?>" method="post">
                                 {{ csrf_field() }}
-                                <input type="hidden" name="Id"
-                                  value="{{ $notificationsData['Id'][$index] }}">
+                                <input type="hidden" name="notifId"
+                                  value="{{ $notificationsData['notifId'][$index] }}">
                                 <input type="hidden" name="Url"
                                   value="{{ $notificationsData['url'][$index] }}">
                                 <button type="submit"
                                   style="background-color:transparent;border:none;text-align:left;cursor: pointer;"><b>{{ $notification }}</b>
+                                <span class="createdAt" style="margin-left:5px"
+                                  data-timestamp="{{ $notificationsData['createdAt'][$index] }}"></span>
+                                {{-- @if ($recommend_data)
+                                <small class="text-muted" style=""></small>
+                                <span style="font-size: 10px;">(Approval)</span>
+                                @else
+                                <small class="text-muted" style=""></small>
+                                <span style="font-size: 10px;">(Recommendation / Approval)</span>
+                                @endif --}}
+                                <small class="text-muted" style=""></small>
                                 </button>
                               </form>
                             </span>
                           </div>
-                          <span class="createdAt" style="margin-left:5px"
-                            data-timestamp="{{ $notificationsData['createdAt'][$index] }}"></span>
-                          <small class="text-muted"></small>
                         </div>
                       </div>
                     </a>
