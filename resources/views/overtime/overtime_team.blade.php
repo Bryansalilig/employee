@@ -8,7 +8,7 @@
     <li class="breadcrumb-item">Timekeeping</li>
     <li class="breadcrumb-item">Overtime</li>
     <li class="breadcrumb-item">Team Overtime</li>
-    <?php 
+    <?php
     function capitalizeFirstLetter($str) {
         return ucfirst($str);
     }
@@ -101,11 +101,11 @@
                         <td title="{{ htmlentities($request->reason) }}">{{ stringlimit($request->reason, 50) }}</td>
                         <td id="aligned"><span class="d-none">{{ strtotime($request->dates[0]) }}</span> {!! implode('<br>', $request->dates) !!}</td>
                         <td id="aligned" style="text-align:center">{{ array_sum($request->no_of_hours) }} <?= (array_sum($request->no_of_hours) > 1) ? "hrs." : "hr."?></td>
-                        <td id="aligned"><span class="badge <?= 
-                          (timekeepingStatus($request) == 'Pending') ? 'bg-primary' : 
-                          ((timekeepingStatus($request) == 'Approved') ? 'bg-success' : 
-                          ((timekeepingStatus($request) == 'Verifying') ? 'bg-warning' : 
-                          ((timekeepingStatus($request) == 'Verified') ? 'bg-purple' : 
+                        <td id="aligned"><span class="badge <?=
+                          (timekeepingStatus($request) == 'Pending') ? 'bg-primary' :
+                          ((timekeepingStatus($request) == 'Approved') ? 'bg-success' :
+                          ((timekeepingStatus($request) == 'Verifying') ? 'bg-warning' :
+                          ((timekeepingStatus($request) == 'Verified') ? 'bg-purple' :
                           ((timekeepingStatus($request) == 'Completed') ? 'bg-info' :
                           ((timekeepingStatus($request) == 'Declined' || timekeepingStatus($request) == 'Not Approve' || timekeepingStatus($request) == 'Reverted') ? 'bg-danger' :
                           ''))))) ?>"><?= timekeepingStatus($request) ?></span>
@@ -122,12 +122,12 @@
                         @endif
                         </td>
                     </tr>
-                  @endforeach     
+                  @endforeach
                 </tbody>
             </table>
         </div>
-        
-        
+
+
 
       </div>
    </div>
@@ -164,7 +164,7 @@
             e.stopPropagation();
             var pageIndex = table.page();
             var rowIndex = table.row($(this).closest('tr')).index();
-            
+
             if (!selectedRows[pageIndex]) {
                 selectedRows[pageIndex] = [];
             }
@@ -180,7 +180,7 @@
       // Select all rows
       $('#selectAll').click(function () {
             var isChecked = $(this).prop('checked');
-            
+
             // Store the current page
             currentPage = table.page();
 
@@ -208,9 +208,9 @@
     $('#filter-level').change(function() {
       var selectedStatus = $(this).val();
       if(selectedStatus == ""){
-        window.location.href = "{{ route('overtime') }}";
+        window.location.href = "{{ route('team-overtime') }}";
       }else {
-        window.location.href = "{{ route('overtime') }}?status=" + selectedStatus;
+        window.location.href = "{{ route('team-overtime') }}?status=" + selectedStatus;
       }
     });
       $('#example-table').DataTable({

@@ -49,8 +49,9 @@ channel.bind('my-event', function(data) {
     if($is_leader > 0) {
   ?>
     <a href="{{ route('team-overtime') }}" class="btn btn-primary btn-rounded"><i class="fa fa-users" aria-hidden="true"></i> Team Overtime</a>
-  <?php } ?>
+  <?php } else if (Auth::user()->usertype != 2 || Auth::user()->usertype != 3) { ?>
     <a href="{{ route('overtime/create') }}" class="btn btn-primary btn-rounded"><i class="fa fa-pencil-square-o" aria-hidden="true"></i> File Overtime</a> &nbsp;
+  <?php } ?>
   </div>
 </div>
 <div class="page-content fade-in-up">

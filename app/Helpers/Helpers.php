@@ -350,6 +350,7 @@ function getNotifications($receiver_id)
         // Retrieve details for sender notifications
         $sender = NotificationDetails::join('notifications', 'notifications.id', '=', 'notification_details.notif_id')
         ->leftJoin('overtime_request', 'overtime_request.slug', '=', 'notification_details.ot_slug')
+        ->where('overtime_request.status', "=", "APPROVED")
         ->where('notifications.sender_id', $receiver_id)
         ->where('notification_details.sender_status', 0)
         ->orderBy('notification_details.created_at', 'desc')
@@ -411,13 +412,13 @@ function getNotifications($receiver_id)
     }
 
     return [
+        'Id' => $Id,
+        'url' => $url,
+        'notifId' => $notifId,
+        'createdAt' => $createdAt,
         'is_sender' => $is_sender,
         'notifications' => $notifications,
-        'recommend_data' => $recommend_date,
-        'createdAt' => $createdAt,
-                'notifId' => $notifId,
-                'Id' => $Id,
-                'url' => $url
+        'recommend_data' => $recommend_date
     ];
 }
 
@@ -436,9 +437,9 @@ function hasUnread($receiver_id)
 
 function notificationCount($receiver_id)
 {
-    $is_manager = User::find($receiver_id);
-    if ($is_manager){
-        if (stripos($is_manager->position_name, 'manager') !== false) {
+    $emp_notif = User::find($receiver_id);
+    if ($emp_notif){
+        if (stripos($emp_notif->position_name, 'manager') !== false) {
             $manager_notif_count = NotificationDetails::where('manager_id', $receiver_id)
             ->where('manager_status', 0)
             ->orWhere('supervisor_id', $receiver_id)->count();
@@ -450,7 +451,7 @@ function notificationCount($receiver_id)
             } else {
                 return 0;
             }
-        } else {
+        } else if (stripos($emp_notif->position_name, 'supervisor') !== false) {
             $supervisor_notif_count = NotificationDetails::where('supervisor_id', $receiver_id)
             ->where('supervisor_status', 0)
             ->count();
@@ -462,9 +463,17 @@ function notificationCount($receiver_id)
             } else {
                 return 0;
             }
+        } else {
+            $sender_notif_count = NotificationDetails::join('notifications', 'notifications.id', '=', 'notification_details.notif_id')
+            ->leftJoin('overtime_request', 'overtime_request.slug', '=', 'notification_details.ot_slug')
+            ->where('overtime_request.status', "=", "APPROVED")
+            ->where('notifications.sender_id', $receiver_id)
+            ->where('notification_details.sender_status', 0)
+            ->count();
+
+            return $sender_notif_count;
         }
     }
-
 }
 
 // function getNotification($receiver_id)

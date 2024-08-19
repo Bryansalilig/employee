@@ -161,6 +161,7 @@ Route::controller(OvertimeController::class)->group(function (){
   Route::get('overtime/{slug}', 'show')->name('overtime/show');
   Route::post('overtime/approve', 'approve')->name('overime.approve');
   Route::post('overtime/recommend', 'recommend')->name('overtime/recommend');
+  Route::post('overtime/verification', 'verification')->name('overtime/verification');
   Route::post('overtime/store', 'store')->name('overtime.store');
   Route::post('overtime/updateUnread', 'updateUnread')->name('overtime.updateUnread');
   Route::get('overtime/update', 'OvertimeController@updateNo')->name('overtime.update');

@@ -86,61 +86,94 @@
               <td>
                 <form action="<?= url('overtime/updateUnread') ?>" method="post" class="notification-form">
                   {{ csrf_field() }}
-                  <input type="hidden" name="notifId" value="{{ $notification->id }}">
+                  <input type="hidden" name="notifId" value="{{ $notification->notif_id }}">
                   <input type="hidden" name="Url" value="{{ $notification->url }}">
                 <a href="#" class="submit-trigger"><b>{{ $notification->sender }}</b></a>
                 @if ($notification->manager_id == Auth::user()->id)
-                @if ($notification->manager_status == 1)
-                <br>
-                <span class="read-sms">
-                <span style="color: rgb(15, 19, 17);">Reason:</span>
-                <span class="submit-trigger" title="{{ htmlentities($notification->reason) }}">
-                {{ stringLimit($notification->reason, 168) }}
-                </span>
-                </span>
-                @else
-                <i class="fa fa-circle" aria-hidden="true"
-                  style="font-size:8px;color:red;position:absolute;margin-left:5px;margin-top:4px;">
-                </i>
-                <br>
-                <span class="unread-sms">
-                <span style="color: rgb(15, 19, 17);">Reason:</span>
-                <span class="submit-trigger" title="{{ htmlentities($notification->reason) }}">
-                {{ stringLimit($notification->reason, 168) }}
-                </span>
-                </span>
-                @endif
+                  @if ($notification->manager_status == 1)
+                    <br>
+                    <span class="read-sms">
+                    <span style="color: rgb(15, 19, 17);">Reason:</span>
+                    <span class="submit-trigger" title="{{ htmlentities($notification->reason) }}">
+                    {{ stringLimit($notification->reason, 168) }}
+                    </span>
+                    </span>
+                  @else
+                    <i class="fa fa-circle" aria-hidden="true"
+                    style="font-size:8px;color:red;position:absolute;margin-left:5px;margin-top:4px;">
+                    </i>
+                    <br>
+                    <span class="unread-sms">
+                    <span style="color: rgb(15, 19, 17);">Reason:</span>
+                    <span class="submit-trigger" title="{{ htmlentities($notification->reason) }}">
+                    {{ stringLimit($notification->reason, 168) }}
+                    </span>
+                    </span>
+                  @endif
+                  @if ($notification->recommend_date)
+                    <br>
+                    <span style="font-size: 10px;"><b>(Approval)</b></span>
+                  @else
+                    <br>
+                    <span style="font-size: 10px;"><b>(Recommendation / Approval)</b></span>
+                  @endif
                 @elseif ($notification->supervisor_id == Auth::user()->id)
-                @if ($notification->supervisor_status == 1)
-                <br>
-                <span class="read-sms">
-                <span style="color: rgb(15, 19, 17);">Reason:</span>
-                <span class="submit-trigger" title="{{ htmlentities($notification->reason) }}">
-                {{ stringLimit($notification->reason, 168) }}
-                </span>
-                </span>
-                @else
-                <i class="fa fa-circle" aria-hidden="true"
-                  style="font-size:8px;color:red;position:absolute;margin-left:5px;margin-top:4px;">
-                </i>
-                <br>
-                <span class="unread-sms">
-                <span style="color: rgb(15, 19, 17);">Reason:</span>
-                <span class="submit-trigger" title="{{ htmlentities($notification->reason) }}">
-                {{ stringLimit($notification->reason, 168) }}
-                </span>
-                </span>
-                @endif
-                @endif
-                @if ($notification->recommend_date)
-                <br>
-                <span style="font-size: 10px;"><b>(Approval)</b></span>
-                @else
-                <br>
-                <span style="font-size: 10px;"><b>(Recommendation / Approval)</b></span>
+                  @if ($notification->supervisor_status == 1)
+                    <br>
+                    <span class="read-sms">
+                    <span style="color: rgb(15, 19, 17);">Reason:</span>
+                    <span class="submit-trigger" title="{{ htmlentities($notification->reason) }}">
+                    {{ stringLimit($notification->reason, 168) }}
+                    </span>
+                    </span>
+                  @else
+                    <i class="fa fa-circle" aria-hidden="true"
+                      style="font-size:8px;color:red;position:absolute;margin-left:5px;margin-top:4px;">
+                    </i>
+                    <br>
+                    <span class="unread-sms">
+                    <span style="color: rgb(15, 19, 17);">Reason:</span>
+                    <span class="submit-trigger" title="{{ htmlentities($notification->reason) }}">
+                    {{ stringLimit($notification->reason, 168) }}
+                    </span>
+                    </span>
+                  @endif
+                  @if ($notification->recommend_date)
+                    <br>
+                    <span style="font-size: 10px;"><b>(Approval)</b></span>
+                  @else
+                    <br>
+                    <span style="font-size: 10px;"><b>(Recommendation / Approval)</b></span>
+                  @endif
+                @elseif ($notification->sender_id == Auth::user()->id)
+                  @if ($notification->sender_status == 1)
+                    <br>
+                    <span class="read-sms">
+                    <span style="color: rgb(15, 19, 17);">Reason:</span>
+                    <span class="submit-trigger" title="{{ htmlentities($notification->reason) }}">
+                    {{ stringLimit($notification->reason, 168) }}
+                    </span>
+                    </span>
+                  @else
+                    <i class="fa fa-circle" aria-hidden="true"
+                      style="font-size:8px;color:red;position:absolute;margin-left:5px;margin-top:4px;">
+                    </i>
+                    <br>
+                    <span class="unread-sms">
+                    <span class="submit-trigger" title="{{ htmlentities($notification->reason) }}">
+                    {{ stringLimit($notification->reason, 168) }}
+                    </span>
+                    </span>
+                  @endif
+                  <span style="color: rgb(124, 143, 137);" class="createdAt"
+                  data-timestamp="{{ date('Y-m-d\TH:i:s\Z', strtotime($notification['created_at'])) }}"></span>
+                  @if ($notification->approved_date)
+                    <br>
+                    <span style="font-size: 10px;"><b>(For Timekeeping)</b></span>
+                  @endif
                 @endif
                 <span style="color: rgb(124, 143, 137);" class="createdAt"
-                  data-timestamp="{{ date('Y-m-d\TH:i:s\Z', strtotime($notification['created_at'])) }}"></span>
+                  data-timestamp="{{ date('Y-m-d\TH:i:s\Z', ($notification->sender_id == Auth::user()->id) ? strtotime($notification['approved_date']) : strtotime($notification['created_at'])) }}"></span>
                 <small class="text-muted" style="float: right"></small>
                 </form>
               </td>

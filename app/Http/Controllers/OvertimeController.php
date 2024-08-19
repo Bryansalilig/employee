@@ -20,11 +20,10 @@ class OvertimeController extends Controller
 {
     public function index(Request $request)
     {
-
         $status = (($request->has('status') && $request->get('status') != "") ? $request->get('status') : 'pending');
         $id = Auth::user()->id;
         // echo "<pre>";
-        // echo $status;
+        // print_r($status);
         // return;
 
         $data['overtime_request'] = OvertimeRequest::getOvertime($status, 'user', $id);
@@ -51,7 +50,6 @@ class OvertimeController extends Controller
     public function store(Request $request)
     {
         $employee = User::withTrashed()->find($request->employee_id);
-
         $notif = new Notifications();
         $notif->sender_id = $request->employee_id;
         $notif->module = "Overtime";
@@ -100,7 +98,6 @@ class OvertimeController extends Controller
             $detail->date = Carbon::parse($date)->toDateString();
             $detail->no_of_hours = $no_of_hours;
             $detail->save();
-
         }
 
         $first = strtotime(date('Y-m-d H:i:s'));
@@ -169,6 +166,9 @@ class OvertimeController extends Controller
     public function approve(Request $request)
     {
         $overtime = OvertimeRequest::withTrashed()->find($request->id);
+        $notif_approved = NotificationDetails::where('notif_id', $request->notif_id)->first();
+        $notif_approved->approved_date = date('Y-m-d H:i:s');
+        $notif_approved->save();
         if(empty($overtime)) {
             return redirect('/404');
             exit;
@@ -236,11 +236,9 @@ class OvertimeController extends Controller
         }
     }
 
-
     public function show($slug)
     {
         $item = OvertimeRequest::getOvertime('', 'show', $slug);
-
         $notif_details = NotificationDetails::join('notifications', 'notifications.id', '=', 'notification_details.notif_id')
         ->where('ot_slug','=',$item[0]->slug)->first();
 
@@ -295,6 +293,9 @@ class OvertimeController extends Controller
         $id = Auth::user()->id;
 
         $data['overtime_request'] = OvertimeRequest::getOvertime($status, 'team', $id);
+        // echo "<pre>";
+        // print_r($data);
+        // return;
         $data['type'] = $status;
         $data['status_filter'] = $request->input('status');
 
@@ -350,12 +351,19 @@ class OvertimeController extends Controller
     {
         // Ensure that `notifId` exists in the request
         $notifId = $request->notifId;
+        // echo "<pre>";
+        // echo $notifId;
+        // return;
         if (!$notifId) {
             return back()->with('error', 'Notification ID is missing.');
         }
 
-        $notification = NotificationDetails::where('notif_id', $notifId)->first();
-
+        $notification = NotificationDetails::join('notifications', 'notifications.id', '=', 'notification_details.notif_id')
+        ->where('notification_details.notif_id', $notifId)
+        ->first();
+        // echo "<pre>";
+        // print_r($notification);
+        // return;
         if (!$notification) {
             return back()->with('error', 'Notification not found.');
         }
@@ -365,6 +373,9 @@ class OvertimeController extends Controller
         }
         if ($notification->manager_id == Auth::user()->id) {
             $notification->manager_status = 1;
+        }
+        if ($notification->sender_id == Auth::user()->id) {
+            $notification->sender_status = 1;
         }
 
         if ($notification->save()) {
@@ -376,6 +387,101 @@ class OvertimeController extends Controller
             }
         } else {
             return back()->with('error', 'Failed to update notification status.');
+        }
+    }
+
+    public function verification(Request $request)
+    {
+        $overtime = OvertimeRequest::withTrashed()->find($request->ot_id);
+        echo "<pre>";
+        print_r($request->ids);
+        return;
+        if(empty($overtime)) {
+            return redirect('/404');
+            exit;
+        }
+
+        $i = 0;
+        $obj = [];
+        foreach($request->ids as $key=>$id) {
+            $detail = OvertimeRequestDetails::withTrashed()->find($id);
+            echo "<pre>";
+            echo $detail->time_in[$key] . ' ' . $detail->time_out[$key];
+            // if(!empty($request->time_in[$key])) {
+            //     $detail->time_in = date('Y-m-d H:i:s', strtotime($request->time_in[$key]));
+            // }
+            // if(!empty($request->time_out[$key])) {
+            //     $detail->time_out = date('Y-m-d H:i:s', strtotime($request->time_out[$key]));
+            // }
+            // $detail->save();
+
+            // if(empty($request->time_in[$key]) || empty($request->time_out[$key])) { $i++; }
+
+            // $obj[$key]['date'] = date('Y-m-d', strtotime($detail->date));
+            // $obj[$key]['time_in'] = date('Y-m-d H:i:s', strtotime($request->time_in[$key]));
+            // $obj[$key]['time_out'] = date('Y-m-d H:i:s', strtotime($request->time_out[$key]));
+        }
+        return;
+
+        $employee = User::withTrashed()->find($overtime->employee_id);
+        $manager = User::find($employee->manager_id);
+
+        // SEND EMAIL NOTIFICATION
+        $data = [
+            'emp_name' => strtoupper($employee->first_name),
+            'reason' =>$overtime->reason,
+            'url' => url("overtime/{$overtime->slug}"),
+            'details' => $obj
+        ];
+
+        if($overtime->status == 'VERIFYING') {
+            $log = new Log();
+            $log->employee_id = Auth::user()->id;
+            $log->module_id = $overtime->id;
+            $log->module = 'Overtime';
+            $log->method = 'Verifying';
+            $log->message = 'Updated the Overtime Timekeeping Information';
+            $log->save();
+
+            return back()->with('success', 'Overtime Timekeeping successfully updated.');
+        }
+
+        if($i == 0) {
+            $overtime->status = 'VERIFYING';
+            if(!empty($request->remarks)) {
+                $overtime->reverted_reason = $request->remarks;
+            }
+            $overtime->save();
+
+            if(empty($manager)) {
+                $data['leader_name'] = 'HR DEPARTMENT';
+
+                // Mail::to('hrd@elink.com.ph')->send(new OvertimeVerification($data));
+            } else {
+                $data['leader_name'] = strtoupper($manager->first_name);
+
+                // Mail::to($manager->email)->send(new OvertimeVerification($data));
+            }
+
+            $log = new Log();
+            $log->employee_id = Auth::user()->id;
+            $log->module_id = $overtime->id;
+            $log->module = 'Overtime';
+            $log->method = 'Timekeeping';
+            $log->message = 'Filled Out the Overtime Timekeeping Information';
+            $log->save();
+
+            return redirect($data['url'])->with('success', 'Overtime Timekeeping successfully updated.');
+        } else {
+            $log = new Log();
+            $log->employee_id = Auth::user()->id;
+            $log->module_id = $overtime->id;
+            $log->module = 'Overtime';
+            $log->method = 'Timekeeping';
+            $log->message = 'Updated the Overtime Timekeeping Information';
+            $log->save();
+
+            return back()->with('success', 'Overtime Timekeeping successfully updated.');
         }
     }
 

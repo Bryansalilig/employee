@@ -60,20 +60,20 @@
             {{ csrf_field() }}
             <ul class="nav nav-tabs nav-fill tabs-line">
               <li class="nav-item">
-                <a class="nav-link active" href="#tab-appraisee" data-toggle="tab"><i class="fa fa-clock-o fa-1x"></i> Request</a>
+                <a class="nav-link <?= ($overtime->status == "APPROVED") ? '' : 'active' ?>" href="#tab-appraisee" data-toggle="tab"><i class="fa fa-clock-o fa-1x"></i> Request</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="#tab-reviewed" data-toggle="tab"><i class="fa fa-thumbs-o-up fa-1x" aria-hidden="true"></i> Reviewed by</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#tab-timekeeping" data-toggle="tab"><i class="fa fa-calendar-o fa-1x" aria-hidden="true"></i> Timekeeping</a>
+                <a class="nav-link <?= ($overtime->status == "APPROVED") ? 'active' : '' ?>" href="#tab-timekeeping" data-toggle="tab"><i class="fa fa-calendar-o fa-1x" aria-hidden="true"></i> Timekeeping</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="#tab-log" data-toggle="tab"><i class="ti-notepad"></i> Log</a>
               </li>
             </ul>
             <div class="tab-content">
-              <div class="tab-pane fade show active" id="tab-appraisee">
+              <div class="tab-pane fade <?= ($overtime->status == "APPROVED") ? '' : 'show active' ?>" id="tab-appraisee">
                 <div class="row">
                   <div class="col-md-12" style="border-right: 1px solid #eee;">
                     <?php
@@ -88,7 +88,6 @@
                         $profile_img = $employee->profile_img;
                         $fullname = $overtime->last_name . ', ' . $overtime->first_name;
                         }
-
                       $i++;
                       ?>
                     <table class="table table-striped table-hover">
@@ -217,7 +216,7 @@
                   </div>
                 </div>
               </div>
-              <div class="tab-pane fade" id="tab-timekeeping">
+              <div class="tab-pane fade <?= ($overtime->status == "APPROVED") ? 'show active' : '' ?>" id="tab-timekeeping">
                 <div class="row">
                   <div class="col-md-12" style="border-right: 1px solid #eee;">
                     <?php
@@ -242,67 +241,50 @@
                           <th class="text-center">No. of Hours (Estimated)</th>
                           <th>Time In</th>
                           <th>Time Out</th>
-                          <th>No. of Hours(Actual)</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <?php
-                          foreach($overtime->dates as $key=>$date){
-                          ?>
-                        <tr>
-                          <td><?= date('F d, Y',strtotime($date)) ?></td>
-                          <td class="text-center"><?= $overtime->no_of_hours[$key]?><?= ($overtime->no_of_hours[$key] > 1) ? " hrs" : " hr"?></td>
-                          <td><?= empty($overtime->time_in[$key]) ? '' : date('m/d/Y H:i A', strtotime($overtime->time_in[$key])) ?></td>
-                          <td><?= empty($overtime->time_out[$key]) ? '' : date('m/d/Y H:i A', strtotime($overtime->time_out[$key])) ?></td>
-                          <td><?= numberOfHours($overtime->time_in[$key], $overtime->time_out[$key], false, true) ?></td>
-                        </tr>
-                        <?php
-                          }
-                          ?>
-                      </tbody>
+                        <form action="<?= url('overtime/verification') ?>" method="post">
+                          {{ csrf_field() }}
+                          <input type="text" name="ot_id" value="<?= $overtime->id ?>">
+                          <?php
+                            foreach($overtime->dates as $key=>$date){
+                            ?>
+                            <tr>
+                              <td style="width:15%"><?= date('F d, Y',strtotime($date)) ?></td>
+                              <td style="width:25%" class="text-center"><?= $overtime->no_of_hours[$key]?><?= ($overtime->no_of_hours[$key] > 1) ? " hrs" : " hr"?></td>
+                              <td style="width: 21%">
+                                <input type="text" name="ids[]" value="<?= $overtime->ids[$key] ?>">
+                                <?php
+                                  if(empty($overtime->time_in[$key])) {
+                                ?>
+                                  <input type="text" name="time_in[]" class="form-control mdatetime2 input_none" placeholder="MM/DD/YYYY" autocomplete="off" required />
+                                <?php
+                                  } else {
+                                    date('m/d/Y H:i A', strtotime($overtime->time_in[$key]));
+                                  }
+                                ?>
+                              </td>
+                              <td style="width: 21%">
+                                <?php
+                                  if(empty($overtime->time_out[$key])) {
+                                ?>
+                                  <input type="text" name="time_out[]" class="form-control mdatetime2 input_none" placeholder="MM/DD/YYYY" autocomplete="off" required />
+                                <?php
+                                  } else {
+                                    date('m/d/Y H:i A', strtotime($overtime->time_out[$key]));
+                                  }
+                                ?>
+                              </td>
+                              {{-- <td style="width: 25px;"><?= numberOfHours($overtime->time_in[$key], $overtime->time_out[$key], false, true) ?></td> --}}
+                            </tr>
+                          <?php
+                            }
+                            ?>
+                          </form>
+                        </tbody>
+                      </table>
                     </table>
-                  </div>
-                  <div class="col-md-4 form-group info">
-                    <br>
-                    <label>Date filed:</label>
-                    <p class="text-display"><?= slashedDate($overtime->created_at) ?></p>
-                  </div>
-                  <div class="col-md-4 form-group info">
-                    <br>
-                    <label>Contact Number:</label>
-                    <p class="text-display"><?= $overtime->contact_number ?></p>
-                  </div>
-                  <div class="col-md-4 form-group info">
-                    <br>
-                    <label>Total No. of Hours:</label>
-                    <p class="text-display"><?= array_sum($overtime->no_of_hours) ?></p>
-                  </div>
-                  <div class="col-md-12 form-group info">
-                    <br>
-                    <label>Reason:</label>
-                    <p class="text-display"><?= htmlentities($overtime->reason) ?></p>
-                  </div>
-                  <?php
-                    if(!empty($overtime->reverted_reason)) {
-                    ?>
-                  <div class="col-md-12 form-group info">
-                    <br>
-                    <label>Revert Reason:</label>
-                    <p class="text-display"><?= htmlentities($overtime->reverted_reason) ?></p>
-                  </div>
-                  <?php
-                    }
-                    ?>
-                  <div class="col-md-12 m-t-20">
-                    <h6 class="text-info m-b-10 w-100"><i class="fa fa-calendar-o" aria-hidden="true"></i> Timekeeping Log:</h6>
-                  </div>
-                  <div class="col-md-6 m-t-10">
-                    <label for="time-in">Time In <span class="text-danger">*</span></label>
-                    <input type="text" name="date[]" class="form-control mdatetime input_none" placeholder="MM/DD/YYYY" autocomplete="off" required />
-                  </div>
-                  <div class="col-md-6 m-t-10">
-                    <label for="time-out">Time Out <span class="text-danger">*</span></label>
-                    <input type="text" name="date[]" class="form-control mdatetime input_none" placeholder="MM/DD/YYYY" autocomplete="off" required />
                   </div>
                 </div>
               </div>
@@ -366,7 +348,7 @@
         <button type="submit" style="margin-right:5px;" class="btn btn-success btn-rounded btn-submit">Verified</button>
         <?php } if($overtime->status == 'VERIFIED') {?>
         <button type="submit" style="margin-right:5px;" class="btn btn-success btn-rounded btn-submit">Complete</button>
-        <?php } if(($overtime->status == 'PENDING' || $overtime->status == 'DECLINED') && (Auth::user()->isAdmin() || Auth::user()->id == $overtime->manager_id)) {?>
+        <?php } if($overtime->status == 'PENDING' || $overtime->status == 'DECLINED' || Auth::user()->isAdmin() || Auth::user()->id == $overtime->manager_id) {?>
         <form action="<?= url('overtime/approve') ?>" method="POST">
           {{ csrf_field() }}
           <input type="hidden" name="notif_id" value="<?= $notif_detail->notif_id ?>" />
@@ -376,6 +358,16 @@
         </form>
         <?php } ?>
         <button type="submit" style="margin-right:5px;" class="btn btn-info btn-rounded btn-submit">Update</button>
+        <?php if (Auth::user()->isAdmin() && !in_array(Auth::user()->usertype, [2, 3])) { ?>
+        <button type="submit" style="margin-right:5px;display:<?= ($overtime->status == "APPROVED") ? 'block' : 'none' ?>" class="btn btn-info btn-rounded btn-submit">Update TimeKeeping</button>
+        <?php
+          }
+          } else { ?>
+        <form action="<?= url('overtime/verification') ?>" method="POST">
+          {{ csrf_field() }}
+          <input type="hidden" name="ot_id" value="<?= $overtime->id?>">
+          <button type="submit" style="margin-right:5px;display:<?= ($overtime->status == "APPROVED") ? 'block' : 'none' ?>" class="btn btn-info btn-rounded btn-submit">Update TimeKeeping</button>
+        </form>
         <?php } if($overtime->status == 'PENDING' || $overtime->status == 'APPROVED') {?>
         <button type="submit" style="margin-right:5px;" class="btn btn-danger btn-rounded btn-submit">Decline/Cancel</button>
         <?php } ?>
@@ -397,7 +389,7 @@
      $('#fullname').text(fullname);
     }
     $(function () {
-    $('.mdatetime').bootstrapMaterialDatePicker({ format: 'YYYY-MM-DD HH:mm', time: true, clearButton: true });
+    $('.mdatetime2').bootstrapMaterialDatePicker({ format: 'YYYY-MM-DD hh:mm A', shortTime: true, clearButton: true });
 
      loadEmployee('{{ $profile_img }}', '{{ $position }}', '{{ $department }}', '{{ $fullname }}');
 
